@@ -1309,7 +1309,8 @@ def create_protected_layout():
             </footer>
         </body>
     </html>
-    '''
+    '''  # ← ✅ CLOSE STRING HERE!
+
     # MAIN APP LAYOUT - OUTSIDE ANY FUNCTION
     def serve_layout():
         """Serve appropriate layout based on authentication status"""
@@ -1322,6 +1323,7 @@ def create_protected_layout():
                     hs_code=None, country=None, category=None):
         """Apply all filters to the dataframe"""
         filtered_df = df.copy()
+        # filtering logic continues...
 
         if start_date:
             start_parsed = parse_date_simple(start_date)
