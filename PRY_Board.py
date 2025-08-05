@@ -1466,7 +1466,6 @@ def create_protected_layout():
             # Return error UI or empty components
             # return error_cards, error_charts
 
-            ]
 
             error_charts = [
                 html.Div([
