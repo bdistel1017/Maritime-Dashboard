@@ -25,7 +25,21 @@ server = Flask(__name__)
 server.secret_key = os.environ.get('SECRET_KEY', 'pry-maritime-dashboard-secret-2024-production')
 
 # Initialize Dash app with Flask server
-app = dash.Dash(__name__, server=server, suppress_callback_exceptions=True)
+# Initialize Dash app with Flask server - FORCE COMPONENT REGISTRATION
+app = dash.Dash(
+    __name__,
+    server=server,
+    suppress_callback_exceptions=True,
+    external_stylesheets=[],
+    external_scripts=[],
+    assets_folder=None,
+    serve_locally=True,
+    compress=False
+)
+
+# Force component registration
+app.scripts.config.serve_locally = True
+app.css.config.serve_locally = True
 app.title = "Maritime Imports Dashboard - PRY Analytics"
 
 # Initialize Flask-Login
