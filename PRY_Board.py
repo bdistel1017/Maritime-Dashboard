@@ -1309,6 +1309,15 @@ def create_protected_layout():
         </body>
     </html>
     '''
+    '''
+
+    # FORCE LAYOUT ASSIGNMENT - ADD THIS
+    print("Setting app layout...")
+    app.layout = html.Div([
+        html.H1("Maritime Imports Dashboard", style={'color': '#DCE4F2', 'text-align': 'center'}),
+        html.P("Dashboard is loading...", style={'color': '#DCE4F2', 'text-align': 'center'})
+    ], style={'background-color': '#191B27', 'padding': '50px'})
+    print(f"Layout assigned: {app.layout is not None}")
 
     # SERVER SETUP
     server = app.server
