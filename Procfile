@@ -1,1 +1,0 @@
-web: gunicorn PRY_Board:server
