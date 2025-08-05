@@ -1266,6 +1266,7 @@ def create_protected_layout():
             return error_cards, error_charts
 
     # CSS STYLING - FORCES NIGHT BLACK EVERYWHERE
+    # CSS STYLING - FORCES NIGHT BLACK EVERYWHERE
     app.index_string = '''
     <!DOCTYPE html>
     <html>
@@ -1309,15 +1310,264 @@ def create_protected_layout():
         </body>
     </html>
     '''
-    '''
 
-    # FORCE LAYOUT ASSIGNMENT - ADD THIS
-    print("Setting app layout...")
-    app.layout = html.Div([
-        html.H1("Maritime Imports Dashboard", style={'color': '#DCE4F2', 'text-align': 'center'}),
-        html.P("Dashboard is loading...", style={'color': '#DCE4F2', 'text-align': 'center'})
-    ], style={'background-color': '#191B27', 'padding': '50px'})
-    print(f"Layout assigned: {app.layout is not None}")
+    # MAIN APP LAYOUT - OUTSIDE ANY FUNCTION
+    def serve_layout():
+        """Serve appropriate layout based on authentication status"""
+        return create_protected_layout()
+
+    app.layout = serve_layout
+
+    # FILTER DATA FUNCTION
+    def filter_data(df, start_date=None, end_date=None, buyer=None, seller=None,
+                    hs_code=None, country=None, category=None):
+        """Apply all filters to the dataframe"""
+        filtered_df = df.copy()
+
+        if start_date:
+            start_parsed = parse_date_simple(start_date)
+            if start_parsed:
+                filtered_df = filtered_df[filtered_df['Date'].dt.date >= start_parsed]
+
+        if end_date:
+            end_parsed = parse_date_simple(end_date)
+            if end_parsed:
+                filtered_df = filtered_df[filtered_df['Date'].dt.date <= end_parsed]
+
+        if buyer:
+            filtered_df = filtered_df[filtered_df['Buyer'] == buyer]
+
+        if seller:
+            filtered_df = filtered_df[filtered_df['Seller'] == seller]
+
+        if hs_code:
+            filtered_df = filtered_df[filtered_df['HS Code'].astype(str) == str(hs_code)]
+
+        if country:
+            filtered_df = filtered_df[filtered_df['Country of Origin'] == country]
+
+        if category:
+            filtered_df = filtered_df[filtered_df['Category'] == category]
+
+        return filtered_df
+
+    # MAIN DASHBOARD CALLBACK - UPDATES EVERYTHING
+    @app.callback(
+        [Output('metric-cards', 'children'),
+         Output('charts-container', 'children')],
+        [Input('start-date', 'value'),
+         Input('end-date', 'value'),
+         Input('buyer-filter', 'value'),
+         Input('seller-filter', 'value'),
+         Input('hs-code-filter', 'value'),
+         Input('country-filter', 'value'),
+         Input('category-filter', 'value'),
+         Input('clear-all-btn', 'n_clicks'),
+         Input('clear-start-date', 'n_clicks'),
+         Input('clear-end-date', 'n_clicks'),
+         Input('clear-buyer', 'n_clicks'),
+         Input('clear-seller', 'n_clicks'),
+         Input('clear-hs-code', 'n_clicks'),
+         Input('clear-country', 'n_clicks'),
+         Input('clear-category', 'n_clicks')]
+    )
+    def update_dashboard(start_date, end_date, buyer_filter, seller_filter, hs_code_filter,
+                         country_filter, category_filter, clear_all, clear_start, clear_end,
+                         clear_buyer, clear_seller, clear_hs, clear_country, clear_cat):
+
+        try:
+            # Handle clear button clicks
+            if ctx.triggered:
+                button_id = ctx.triggered[0]['prop_id'].split('.')[0]
+                if button_id in ['clear-all-btn', 'clear-start-date', 'clear-end-date', 'clear-buyer',
+                                 'clear-seller', 'clear-hs-code', 'clear-country', 'clear-category']:
+                    if button_id == 'clear-all-btn':
+                        start_date = end_date = buyer_filter = seller_filter = None
+                        hs_code_filter = country_filter = category_filter = None
+                    elif button_id == 'clear-start-date':
+                        start_date = None
+                    elif button_id == 'clear-end-date':
+                        end_date = None
+                    elif button_id == 'clear-buyer':
+                        buyer_filter = None
+                    elif button_id == 'clear-seller':
+                        seller_filter = None
+                    elif button_id == 'clear-hs-code':
+                        hs_code_filter = None
+                    elif button_id == 'clear-country':
+                        country_filter = None
+                    elif button_id == 'clear-category':
+                        category_filter = None
+
+            # Filter the data
+            filtered_data = filter_data(df, start_date, end_date, buyer_filter, seller_filter,
+                                        hs_code_filter, country_filter, category_filter)
+
+            # Create metric cards
+            if len(filtered_data) > 0:
+                total_volume = filtered_data['Metric Tons'].sum()
+                total_value = filtered_data['Total calculated value ($)'].sum()
+                avg_price = filtered_data['Val/KG ($)'].mean()
+                transaction_count = len(filtered_data)
+
+                metric_cards = [
+                    html.Div([
+                        html.H3(f"{total_volume:,.0f}",
+                                style={'color': COLORS['light_blue'], 'margin': '0', 'font-size': '28px',
+                                       'font-family': 'Montserrat, sans-serif'}),
+                        html.P("Metric Tons", style={'color': COLORS['light_gray'], 'margin': '5px 0 0 0',
+                                                     'font-family': 'Montserrat, sans-serif'})
+                    ], style={'background': COLORS['dark_gray'], 'padding': '20px', 'border-radius': '12px',
+                              'text-align': 'center'}),
+
+                    html.Div([
+                        html.H3(f"${total_value:,.0f}",
+                                style={'color': COLORS['light_green'], 'margin': '0', 'font-size': '28px',
+                                       'font-family': 'Montserrat, sans-serif'}),
+                        html.P("Total Value", style={'color': COLORS['light_gray'], 'margin': '5px 0 0 0',
+                                                     'font-family': 'Montserrat, sans-serif'})
+                    ], style={'background': COLORS['dark_gray'], 'padding': '20px', 'border-radius': '12px',
+                              'text-align': 'center'}),
+
+                    html.Div([
+                        html.H3(f"${avg_price:.2f}",
+                                style={'color': COLORS['purple'], 'margin': '0', 'font-size': '28px',
+                                       'font-family': 'Montserrat, sans-serif'}),
+                        html.P("Avg Price/KG", style={'color': COLORS['light_gray'], 'margin': '5px 0 0 0',
+                                                      'font-family': 'Montserrat, sans-serif'})
+                    ], style={'background': COLORS['dark_gray'], 'padding': '20px', 'border-radius': '12px',
+                              'text-align': 'center'}),
+
+                    html.Div([
+                        html.H3(f"{transaction_count:,}",
+                                style={'color': COLORS['light_blue'], 'margin': '0', 'font-size': '28px',
+                                       'font-family': 'Montserrat, sans-serif'}),
+                        html.P("Transactions", style={'color': COLORS['light_gray'], 'margin': '5px 0 0 0',
+                                                      'font-family': 'Montserrat, sans-serif'})
+                    ], style={'background': COLORS['dark_gray'], 'padding': '20px', 'border-radius': '12px',
+                              'text-align': 'center'})
+                ]
+            else:
+                metric_cards = [
+                    html.Div([
+                        html.H3("No Data", style={'color': COLORS['light_gray'], 'margin': '0',
+                                                  'font-family': 'Montserrat, sans-serif'}),
+                        html.P("Apply filters", style={'color': COLORS['light_gray'], 'margin': '5px 0 0 0',
+                                                       'font-family': 'Montserrat, sans-serif'})
+                    ], style={'background': COLORS['dark_gray'], 'padding': '20px', 'border-radius': '12px',
+                              'text-align': 'center'})
+                    for _ in range(4)
+                ]
+
+            # Create the 6 charts you requested
+            try:
+                charts = [
+                    html.Div([
+                        dcc.Graph(figure=create_buyer_analysis_chart(filtered_data), config={'displayModeBar': True})
+                    ], style={'background': COLORS['night_black'], 'border-radius': '12px', 'padding': '15px'}),
+
+                    html.Div([
+                        dcc.Graph(figure=create_seller_analysis_chart(filtered_data), config={'displayModeBar': True})
+                    ], style={'background': COLORS['night_black'], 'border-radius': '12px', 'padding': '15px'}),
+
+                    html.Div([
+                        dcc.Graph(figure=create_category_pie_chart(filtered_data), config={'displayModeBar': True})
+                    ], style={'background': COLORS['night_black'], 'border-radius': '12px', 'padding': '15px'}),
+
+                    html.Div([
+                        dcc.Graph(figure=create_country_distribution_chart(filtered_data),
+                                  config={'displayModeBar': True})
+                    ], style={'background': COLORS['night_black'], 'border-radius': '12px', 'padding': '15px'}),
+
+                    html.Div([
+                        dcc.Graph(figure=create_time_series_chart(filtered_data), config={'displayModeBar': True})
+                    ], style={'background': COLORS['night_black'], 'border-radius': '12px', 'padding': '15px'}),
+
+                    html.Div([
+                        dcc.Graph(figure=create_hs_code_analysis_chart(filtered_data), config={'displayModeBar': True})
+                    ], style={'background': COLORS['night_black'], 'border-radius': '12px', 'padding': '15px'})
+                ]
+
+            except Exception as e:
+                print(f"Error creating charts: {e}")
+                charts = [
+                    html.Div([
+                        html.H3("Error creating charts", style={'color': COLORS['light_gray'], 'text-align': 'center',
+                                                                'font-family': 'Montserrat, sans-serif'}),
+                        html.P(str(e), style={'color': COLORS['light_gray'], 'text-align': 'center',
+                                              'font-family': 'Montserrat, sans-serif'})
+                    ], style={'background': COLORS['dark_gray'], 'padding': '20px', 'border-radius': '12px'})
+                    for _ in range(6)
+                ]
+
+            return metric_cards, charts
+
+        except Exception as e:
+            print(f"Dashboard error: {e}")
+
+            error_cards = [
+                html.Div([
+                    html.H3("Error", style={'color': COLORS['light_gray'], 'margin': '0',
+                                            'font-family': 'Montserrat, sans-serif'}),
+                    html.P("Dashboard Error", style={'color': COLORS['light_gray'], 'margin': '5px 0 0 0',
+                                                     'font-family': 'Montserrat, sans-serif'})
+                ], style={'background': COLORS['dark_gray'], 'padding': '20px', 'border-radius': '12px',
+                          'text-align': 'center'})
+                for _ in range(4)
+            ]
+
+            error_charts = [
+                html.Div([
+                    html.H3("Error loading chart", style={'color': COLORS['light_gray'], 'text-align': 'center',
+                                                          'font-family': 'Montserrat, sans-serif'})
+                ], style={'background': COLORS['dark_gray'], 'padding': '20px', 'border-radius': '12px'})
+                for _ in range(6)
+            ]
+
+            return error_cards, error_charts
+
+    # AUTHENTICATION CALLBACKS - AT ROOT LEVEL
+    @app.callback(
+        [Output('login-status', 'children'),
+         Output('username-input', 'value'),
+         Output('password-input', 'value')],
+        [Input('login-button', 'n_clicks')],
+        [State('username-input', 'value'),
+         State('password-input', 'value')]
+    )
+    def handle_login(n_clicks, username, password):
+        if n_clicks and username and password:
+            if username in USERS_DB:
+                if check_password_hash(USERS_DB[username]['password_hash'], password):
+                    user = User(username, USERS_DB[username]['role'])
+                    login_user(user)
+                    return [
+                        html.Div("✅ Login successful! Refreshing...",
+                                 style={'color': COLORS['light_green'], 'font-weight': 'bold',
+                                        'font-family': 'Montserrat, sans-serif'}),
+                        "", ""
+                    ]
+                else:
+                    return [
+                        html.Div("❌ Invalid password!",
+                                 style={'color': '#FF6B6B', 'font-weight': 'bold',
+                                        'font-family': 'Montserrat, sans-serif'}),
+                        username, ""
+                    ]
+            else:
+                return [
+                    html.Div("❌ User not found!",
+                             style={'color': '#FF6B6B', 'font-weight': 'bold',
+                                    'font-family': 'Montserrat, sans-serif'}),
+                    "", ""
+                ]
+        return ["", username or "", password or ""]
+
+    # LOGOUT ROUTE
+    @server.route('/logout')
+    def logout():
+        logout_user()
+        return redirect('/')
 
     # SERVER SETUP
     server = app.server
