@@ -21,18 +21,18 @@ from werkzeug.security import generate_password_hash, check_password_hash
 warnings.filterwarnings("ignore")
 
 # Initialize Flask server
+# Initialize Flask server
 server = Flask(__name__)
 server.secret_key = os.environ.get('SECRET_KEY', 'pry-maritime-dashboard-secret-2024-production')
 
-# Initialize Dash app with Flask server
-# Initialize Dash app with Flask server - FORCE COMPONENT REGISTRATION
-# Initialize Dash app with Flask server - FIXED VERSION
-app = dash.Dash(
-    __name__,
-    server=server,
-    suppress_callback_exceptions=True,
-    serve_locally=True
-)
+# Initialize Dash app - MINIMAL SETUP
+app = dash.Dash(__name__, server=server)
+app.title = "Maritime Imports Dashboard - PRY Analytics"
+
+# Initialize Flask-Login
+login_manager = LoginManager()
+login_manager.init_app(server)
+login_manager.login_view = '/login'
 
 # Force component registration
 app.scripts.config.serve_locally = True
