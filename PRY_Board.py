@@ -26,14 +26,14 @@ server.secret_key = os.environ.get('SECRET_KEY', 'pry-maritime-dashboard-secret-
 
 # Initialize Dash app with Flask server
 app = dash.Dash(__name__, server=server, suppress_callback_exceptions=True)
-app.title = "Maritime Trade Analytics - PRY Dashboard"
+app.title = "Maritime Imports Dashboard - PRY Analytics"
 
 # Initialize Flask-Login
 login_manager = LoginManager()
 login_manager.init_app(server)
 login_manager.login_view = '/login'
 
-# Color Palette
+# Color Palette - YOUR EXACT COLORS
 COLORS = {
     'night_black': '#191B27',
     'light_blue': '#0093FF',
@@ -156,18 +156,12 @@ def parse_date_simple(date_string):
     if not date_string:
         return None
     try:
-        # Try MM/DD/YYYY first
         return datetime.strptime(date_string.strip(), '%m/%d/%Y').date()
     except:
         try:
-            # Try M/D/YYYY
-            return datetime.strptime(date_string.strip(), '%m/%d/%Y').date()
+            return datetime.strptime(date_string.strip(), '%m-%d-%Y').date()
         except:
-            try:
-                # Try MM-DD-YYYY
-                return datetime.strptime(date_string.strip(), '%m-%d-%Y').date()
-            except:
-                return None
+            return None
 
 
 def get_logo_data():
@@ -189,7 +183,7 @@ def create_login_layout():
         html.Div([
             html.Div([
                 html.Img(src=LOGO_DATA, style={'height': '80px', 'margin-bottom': '30px'}) if LOGO_DATA else html.Div(),
-                html.H1("PRY Maritime Trade Analytics", style={
+                html.H1("Maritime Imports Dashboard", style={
                     'color': COLORS['light_gray'],
                     'text-align': 'center',
                     'margin-bottom': '20px',
@@ -263,8 +257,7 @@ def create_login_layout():
                         'font-weight': 'bold',
                         'cursor': 'pointer',
                         'margin-bottom': '20px',
-                        'font-family': 'Montserrat, sans-serif',
-                        'transition': 'all 0.3s ease'
+                        'font-family': 'Montserrat, sans-serif'
                     }),
 
                     html.Div(id='login-status', style={
@@ -294,9 +287,9 @@ def create_login_layout():
     ], style={'font-family': 'Montserrat, sans-serif'})
 
 
-# ENHANCED CHART FUNCTIONS WITH CLICKABLE MODALS
+# PERFECT CHART FUNCTIONS WITH BLUE-GREEN GRADIENTS
 def create_buyer_analysis_chart(data):
-    """Top 8 buyers with blue-green gradient - CLICKABLE"""
+    """Top 8 buyers with blue-green gradient - SMART FILTERING"""
     if len(data) == 0:
         return px.bar(title="No data available")
 
@@ -309,9 +302,8 @@ def create_buyer_analysis_chart(data):
     fig = px.bar(
         x=buyer_data.index,
         y=buyer_data['Metric Tons'],
-        title="Top 8 Buyers by Volume (Click to View Full Size)",
-        labels={'x': 'Buyer', 'y': 'Volume (MT)'},
-        hover_data={'Total calculated value ($)': ':,.0f', 'Val/KG ($)': ':.2f'}
+        title="Top 8 Buyers by Volume",
+        labels={'x': 'Buyer', 'y': 'Volume (MT)'}
     )
 
     fig.update_traces(
@@ -328,20 +320,21 @@ def create_buyer_analysis_chart(data):
 
     fig.update_layout(
         plot_bgcolor=COLORS['night_black'],
-        paper_bgcolor=COLORS['dark_gray'],
+        paper_bgcolor=COLORS['night_black'],
         font_color=COLORS['light_gray'],
-        title_font_size=16,
+        title_font_size=18,
         title_font_color=COLORS['light_gray'],
+        title_font_family='Montserrat',
         xaxis_tickangle=-45,
         height=400,
-        margin=dict(l=50, r=50, t=60, b=50)
+        margin=dict(l=50, r=50, t=60, b=100)
     )
 
     return fig
 
 
 def create_seller_analysis_chart(data):
-    """Top 8 sellers with blue-green gradient - CLICKABLE"""
+    """Top 8 sellers with blue-green gradient - SMART FILTERING"""
     if len(data) == 0:
         return px.bar(title="No data available")
 
@@ -354,9 +347,8 @@ def create_seller_analysis_chart(data):
     fig = px.bar(
         x=seller_data.index,
         y=seller_data['Metric Tons'],
-        title="Top 8 Suppliers by Volume (Click to View Full Size)",
-        labels={'x': 'Supplier', 'y': 'Volume (MT)'},
-        hover_data={'Total calculated value ($)': ':,.0f', 'Val/KG ($)': ':.2f'}
+        title="Top 8 Suppliers by Volume",
+        labels={'x': 'Supplier', 'y': 'Volume (MT)'}
     )
 
     fig.update_traces(
@@ -373,11 +365,53 @@ def create_seller_analysis_chart(data):
 
     fig.update_layout(
         plot_bgcolor=COLORS['night_black'],
-        paper_bgcolor=COLORS['dark_gray'],
+        paper_bgcolor=COLORS['night_black'],
         font_color=COLORS['light_gray'],
-        title_font_size=16,
+        title_font_size=18,
         title_font_color=COLORS['light_gray'],
+        title_font_family='Montserrat',
         xaxis_tickangle=-45,
+        height=400,
+        margin=dict(l=50, r=50, t=60, b=100)
+    )
+
+    return fig
+
+
+def create_category_pie_chart(data):
+    """Top 4 categories EXCLUDING CATH - PIE CHART"""
+    if len(data) == 0:
+        return px.pie(title="No data available")
+
+    non_cath_data = data[data['Category'] != 'CATH']
+    category_data = non_cath_data.groupby('Category')['Metric Tons'].sum().sort_values(ascending=False).head(4)
+
+    if len(category_data) == 0:
+        return px.pie(title="No non-cathode data available")
+
+    category_labels = [CODE_TO_DESCRIPTION.get(cat, cat) for cat in category_data.index]
+
+    fig = px.pie(
+        values=category_data.values,
+        names=category_labels,
+        title="Top 4 Import Categories (Excluding Cathode)",
+        color_discrete_sequence=CHART_COLORS[:4]
+    )
+
+    fig.update_traces(
+        hovertemplate="<b>%{label}</b><br>Volume: %{value:,.1f} MT<br>Percentage: %{percent}<extra></extra>",
+        textinfo='label+percent',
+        textposition='inside',
+        textfont_size=12
+    )
+
+    fig.update_layout(
+        plot_bgcolor=COLORS['night_black'],
+        paper_bgcolor=COLORS['night_black'],
+        font_color=COLORS['light_gray'],
+        title_font_size=18,
+        title_font_color=COLORS['light_gray'],
+        title_font_family='Montserrat',
         height=400,
         margin=dict(l=50, r=50, t=60, b=50)
     )
@@ -386,7 +420,7 @@ def create_seller_analysis_chart(data):
 
 
 def create_country_distribution_chart(data):
-    """Top 8 countries with blue-green gradient - CLICKABLE"""
+    """Top 8 countries with blue-green gradient"""
     if len(data) == 0:
         return px.bar(title="No data available")
 
@@ -399,9 +433,8 @@ def create_country_distribution_chart(data):
     fig = px.bar(
         x=country_data.index,
         y=country_data['Metric Tons'],
-        title="Top 8 Countries by Volume (Click to View Full Size)",
-        labels={'x': 'Country', 'y': 'Volume (MT)'},
-        hover_data={'Total calculated value ($)': ':,.0f', 'Transactions': ':,'}
+        title="Top 8 Countries by Volume",
+        labels={'x': 'Country', 'y': 'Volume (MT)'}
     )
 
     fig.update_traces(
@@ -418,59 +451,21 @@ def create_country_distribution_chart(data):
 
     fig.update_layout(
         plot_bgcolor=COLORS['night_black'],
-        paper_bgcolor=COLORS['dark_gray'],
+        paper_bgcolor=COLORS['night_black'],
         font_color=COLORS['light_gray'],
-        title_font_size=16,
+        title_font_size=18,
         title_font_color=COLORS['light_gray'],
+        title_font_family='Montserrat',
         xaxis_tickangle=-45,
         height=400,
-        margin=dict(l=50, r=50, t=60, b=50)
-    )
-
-    return fig
-
-
-def create_category_pie_chart(data):
-    """Top 3 categories EXCLUDING CATH - CLICKABLE"""
-    if len(data) == 0:
-        return px.pie(title="No data available")
-
-    non_cath_data = data[data['Category'] != 'CATH']
-    category_data = non_cath_data.groupby('Category')['Metric Tons'].sum().sort_values(ascending=False).head(3)
-
-    if len(category_data) == 0:
-        return px.pie(title="No non-cathode data available")
-
-    category_labels = [CODE_TO_DESCRIPTION.get(cat, cat) for cat in category_data.index]
-
-    fig = px.pie(
-        values=category_data.values,
-        names=category_labels,
-        title="Top 3 Import Categories - Non-Cathode (Click to View Full Size)",
-        color_discrete_sequence=CHART_COLORS[:3]
-    )
-
-    fig.update_traces(
-        hovertemplate="<b>%{label}</b><br>Volume: %{value:,.1f} MT<br>Percentage: %{percent}<extra></extra>",
-        textinfo='label+percent',
-        textposition='inside'
-    )
-
-    fig.update_layout(
-        plot_bgcolor=COLORS['night_black'],
-        paper_bgcolor=COLORS['dark_gray'],
-        font_color=COLORS['light_gray'],
-        title_font_size=16,
-        title_font_color=COLORS['light_gray'],
-        height=400,
-        margin=dict(l=50, r=50, t=60, b=50)
+        margin=dict(l=50, r=50, t=60, b=100)
     )
 
     return fig
 
 
 def create_time_series_chart(data):
-    """Time series analysis - CLICKABLE"""
+    """Time series analysis with blue-green gradient"""
     if len(data) == 0:
         return px.line(title="No data available")
 
@@ -506,12 +501,13 @@ def create_time_series_chart(data):
     ))
 
     fig.update_layout(
-        title="Volume and Value Trends Over Time (Click to View Full Size)",
+        title="Volume and Value Trends Over Time",
         plot_bgcolor=COLORS['night_black'],
-        paper_bgcolor=COLORS['dark_gray'],
+        paper_bgcolor=COLORS['night_black'],
         font_color=COLORS['light_gray'],
-        title_font_size=16,
+        title_font_size=18,
         title_font_color=COLORS['light_gray'],
+        title_font_family='Montserrat',
         xaxis=dict(title="Month", color=COLORS['light_gray']),
         yaxis=dict(title="Volume (MT)", side="left", color=COLORS['light_gray']),
         yaxis2=dict(title="Value ($M)", side="right", overlaying="y", color=COLORS['light_gray']),
@@ -523,44 +519,42 @@ def create_time_series_chart(data):
     return fig
 
 
-def create_waterfall_chart(data):
-    """Waterfall chart showing cumulative value by category - CLICKABLE"""
+def create_hs_code_analysis_chart(data):
+    """HS Code analysis with blue-green gradient"""
     if len(data) == 0:
-        return go.Figure().add_annotation(text="No data available", x=0.5, y=0.5)
+        return px.bar(title="No data available")
 
-    category_data = data.groupby('Category')['Total calculated value ($)'].sum().sort_values(ascending=False).head(6)
+    hs_data = data.groupby('HS Code').agg({
+        'Metric Tons': 'sum',
+        'Total calculated value ($)': 'sum'
+    }).sort_values('Metric Tons', ascending=False)
 
-    if len(category_data) == 0:
-        return go.Figure().add_annotation(text="No category data available", x=0.5, y=0.5)
+    fig = px.bar(
+        x=hs_data.index,
+        y=hs_data['Metric Tons'],
+        title="Trade Volume by HS Code",
+        labels={'x': 'HS Code', 'y': 'Volume (MT)'}
+    )
 
-    category_labels = [CODE_TO_DESCRIPTION.get(cat, cat) for cat in category_data.index]
-    categories = category_labels + ['Total']
-    values = list(category_data.values) + [category_data.sum()]
-
-    fig = go.Figure(go.Waterfall(
-        name="Value Flow",
-        orientation="v",
-        measure=["relative"] * len(category_data) + ["total"],
-        x=categories,
-        textposition="outside",
-        text=[f"${v / 1000000:.1f}M" for v in values],
-        y=values,
-        connector={"line": {"color": COLORS['light_gray']}},
-        increasing={"marker": {"color": COLORS['light_green']}},
-        decreasing={"marker": {"color": "#FF6B6B"}},
-        totals={"marker": {"color": COLORS['light_blue']}},
-        hovertemplate="<b>%{x}</b><br>Value: $%{y:,.0f}<extra></extra>"
-    ))
+    fig.update_traces(
+        marker=dict(
+            color=hs_data['Total calculated value ($)'],
+            colorscale=[[0, COLORS['light_blue']], [1, COLORS['light_green']]],
+            showscale=True,
+            colorbar=dict(title="Value ($)", titlefont=dict(color=COLORS['light_gray']),
+                          tickfont=dict(color=COLORS['light_gray']))
+        ),
+        hovertemplate="<b>HS Code: %{x}</b><br>Volume: %{y:,.1f} MT<br>Value: $%{customdata:,.0f}<extra></extra>",
+        customdata=hs_data['Total calculated value ($)'].values
+    )
 
     fig.update_layout(
-        title="Value Waterfall by Category (Click to View Full Size)",
         plot_bgcolor=COLORS['night_black'],
-        paper_bgcolor=COLORS['dark_gray'],
+        paper_bgcolor=COLORS['night_black'],
         font_color=COLORS['light_gray'],
-        title_font_size=16,
+        title_font_size=18,
         title_font_color=COLORS['light_gray'],
-        xaxis_tickangle=-45,
-        yaxis_title="Value ($)",
+        title_font_family='Montserrat',
         height=400,
         margin=dict(l=50, r=50, t=60, b=50)
     )
@@ -568,9 +562,9 @@ def create_waterfall_chart(data):
     return fig
 
 
-# PROTECTED MAIN LAYOUT
+# PERFECT PROTECTED LAYOUT WITH ALL YOUR REQUIREMENTS
 def create_protected_layout():
-    """Main dashboard layout - only accessible after login"""
+    """Main dashboard layout - EXACTLY as you specified"""
 
     # Create filter options with proper data handling
     try:
@@ -599,566 +593,705 @@ def create_protected_layout():
         buyer_options = seller_options = hs_code_options = country_options = category_options = []
 
     return html.Div([
-        # Header with user info
+        # PERFECT HEADER: Logo + Title + Buttons (EXACTLY as requested)
+        html.Div([
+            # LEFT SIDE: Logo + Title
+            html.Div([
+                html.Img(
+                    src=LOGO_DATA,
+                    style={
+                        'height': '70px',
+                        'width': 'auto',
+                        'margin-right': '25px'
+                    }
+                ) if LOGO_DATA else html.Div(),
+                html.H1(
+                    "Maritime Imports Dashboard",
+                    style={
+                        'color': COLORS['light_gray'],
+                        'font-size': '42px',
+                        'font-weight': '700',
+                        'margin': '0',
+                        'font-family': 'Montserrat, sans-serif'
+                    }
+                )
+            ], style={
+                'display': 'flex',
+                'align-items': 'center'
+            }),
+
+            # RIGHT SIDE: Welcome + Clear All Filters + Logout (SAME SIZE)
+            html.Div([
+                html.Span(
+                    f"Welcome, {current_user.username if current_user.is_authenticated else 'User'}",
+                    style={
+                        'color': COLORS['light_gray'],
+                        'font-size': '16px',
+                        'margin-right': '25px',
+                        'font-family': 'Montserrat, sans-serif',
+                        'font-weight': '500'
+                    }
+                ),
+                html.Button(
+                    "Clear All Filters",
+                    id="clear-all-btn",
+                    style={
+                        'background': f'linear-gradient(135deg, {COLORS["light_green"]} 0%, #1E8E00 100%)',
+                        'color': COLORS['night_black'],
+                        'border': 'none',
+                        'padding': '12px 20px',
+                        'border-radius': '8px',
+                        'font-weight': '600',
+                        'cursor': 'pointer',
+                        'font-size': '14px',
+                        'font-family': 'Montserrat, sans-serif',
+                        'margin-right': '15px',
+                        'min-width': '140px',
+                        'height': '44px'
+                    }
+                ),
+                html.A(
+                    "Logout",
+                    href="/logout",
+                    style={
+                        'background': 'linear-gradient(135deg, #FF6B6B 0%, #FF5252 100%)',
+                        'color': 'white',
+                        'border': 'none',
+                        'padding': '12px 20px',
+                        'border-radius': '8px',
+                        'font-weight': '600',
+                        'cursor': 'pointer',
+                        'font-size': '14px',
+                        'text-decoration': 'none',
+                        'font-family': 'Montserrat, sans-serif',
+                        'display': 'inline-block',
+                        'text-align': 'center',
+                        'min-width': '140px',
+                        'height': '44px',
+                        'line-height': '20px'
+                    }
+                )
+            ], style={
+                'display': 'flex',
+                'align-items': 'center'
+            })
+        ], style={
+            'background': COLORS['night_black'],
+            'padding': '25px 30px',
+            'display': 'flex',
+            'align-items': 'center',
+            'justify-content': 'space-between',
+            'border-bottom': f'3px solid {COLORS["dark_gray"]}',
+            'box-shadow': '0 4px 20px rgba(0,0,0,0.4)',
+            'font-family': 'Montserrat, sans-serif'
+        }),
+
+        # PERFECT FILTERS ROW - ALL ON SAME ROW, SMALLER TO FIT
         html.Div([
             html.Div([
-                html.Img(src=LOGO_DATA, style={'height': '70px', 'width': 'auto',
-                                               'margin-right': '25px'}) if LOGO_DATA else html.Div(),
-                html.H1("PRY Maritime Trade Analytics",
-                        style={'color': COLORS['light_gray'], 'font-size': '42px', 'font-weight': '700', 'margin': '0'})
-            ], style={'display': 'flex', 'align-items': 'center'}),
-            html.Div([
-                html.Span(f"Welcome, {current_user.username if current_user.is_authenticated else 'User'}",
-                          style={'color': COLORS['light_gray'], 'font-size': '14px', 'margin-right': '20px'}),
-                html.A("Logout", href="/logout",
-                       style={'background': 'linear-gradient(135deg, #FF6B6B 0%, #FF5252 100%)', 'color': 'white',
-                              'border': 'none', 'padding': '10px 20px', 'border-radius': '8px', 'font-weight': '600',
-                              'cursor': 'pointer', 'font-size': '14px', 'text-decoration': 'none',
-                              'margin-left': '10px'}),
-                html.Button("Clear All Filters", id="clear-all-btn",
-                            style={'background': 'linear-gradient(135deg, #22C70C 0%, #1E8E00 100%)',
-                                   'color': COLORS['night_black'], 'border': 'none', 'padding': '15px 30px',
-                                   'border-radius': '12px', 'font-weight': '700', 'cursor': 'pointer',
-                                   'font-size': '16px'})
-            ], style={'display': 'flex', 'align-items': 'center'})
-        ], style={'background': COLORS['night_black'], 'padding': '25px 30px', 'display': 'flex',
-                  'align-items': 'center', 'justify-content': 'space-between',
-                  'border-bottom': f'3px solid {COLORS["dark_gray"]}'}),
-
-        # Filters Section
-        html.Div([
-            html.Div([
                 html.Div([
-                    html.Label("Start Date",
-                               style={'color': COLORS['light_gray'], 'font-weight': '600', 'margin-bottom': '10px',
-                                      'font-size': '16px'}),
-                    dcc.Input(id="start-date", type="text", placeholder="MM/DD/YYYY", value="",
-                              style={'width': '100%', 'background-color': COLORS['dark_gray'],
-                                     'border': f'2px solid {COLORS["dark_gray"]}', 'color': COLORS['light_gray'],
-                                     'padding': '12px 15px', 'border-radius': '8px', 'font-size': '14px'}),
-                    html.Button("Clear", id="clear-start-date",
-                                style={'background': 'linear-gradient(135deg, #22C70C 0%, #1E8E00 100%)',
-                                       'color': COLORS['night_black'], 'border': 'none', 'padding': '8px 16px',
-                                       'border-radius': '6px', 'font-weight': '600', 'cursor': 'pointer',
-                                       'font-size': '12px', 'margin-top': '8px'})
+                    html.Label("Start Date", style={
+                        'color': COLORS['light_gray'],
+                        'font-weight': '600',
+                        'margin-bottom': '8px',
+                        'font-size': '14px',
+                        'font-family': 'Montserrat, sans-serif'
+                    }),
+                    dcc.Input(
+                        id="start-date",
+                        type="text",
+                        placeholder="MM/DD/YYYY",
+                        value="",
+                        style={
+                            'width': '100%',
+                            'background-color': COLORS['dark_gray'],
+                            'border': f'2px solid {COLORS["dark_gray"]}',
+                            'color': COLORS['light_gray'],
+                            'padding': '8px 10px',
+                            'border-radius': '6px',
+                            'font-size': '12px',
+                            'font-family': 'Montserrat, sans-serif'
+                        }
+                    ),
+                    html.Button("Clear", id="clear-start-date", style={
+                        'background': f'linear-gradient(135deg, {COLORS["light_green"]} 0%, #1E8E00 100%)',
+                        'color': COLORS['night_black'],
+                        'border': 'none',
+                        'padding': '4px 8px',
+                        'border-radius': '4px',
+                        'font-weight': '600',
+                        'cursor': 'pointer',
+                        'font-size': '10px',
+                        'margin-top': '4px',
+                        'font-family': 'Montserrat, sans-serif'
+                    })
                 ], style={'display': 'flex', 'flex-direction': 'column'}),
 
                 html.Div([
-                    html.Label("End Date",
-                               style={'color': COLORS['light_gray'], 'font-weight': '600', 'margin-bottom': '10px',
-                                      'font-size': '16px'}),
-                    dcc.Input(id="end-date", type="text", placeholder="MM/DD/YYYY", value="",
-                              style={'width': '100%', 'background-color': COLORS['dark_gray'],
-                                     'border': f'2px solid {COLORS["dark_gray"]}', 'color': COLORS['light_gray'],
-                                     'padding': '12px 15px', 'border-radius': '8px', 'font-size': '14px'}),
-                    html.Button("Clear", id="clear-end-date",
-                                style={'background': 'linear-gradient(135deg, #22C70C 0%, #1E8E00 100%)',
-                                       'color': COLORS['night_black'], 'border': 'none', 'padding': '8px 16px',
-                                       'border-radius': '6px', 'font-weight': '600', 'cursor': 'pointer',
-                                       'font-size': '12px', 'margin-top': '8px'})
+                    html.Label("End Date", style={
+                        'color': COLORS['light_gray'],
+                        'font-weight': '600',
+                        'margin-bottom': '8px',
+                        'font-size': '14px',
+                        'font-family': 'Montserrat, sans-serif'
+                    }),
+                    dcc.Input(
+                        id="end-date",
+                        type="text",
+                        placeholder="MM/DD/YYYY",
+                        value="",
+                        style={
+                            'width': '100%',
+                            'background-color': COLORS['dark_gray'],
+                            'border': f'2px solid {COLORS["dark_gray"]}',
+                            'color': COLORS['light_gray'],
+                            'padding': '8px 10px',
+                            'border-radius': '6px',
+                            'font-size': '12px',
+                            'font-family': 'Montserrat, sans-serif'
+                        }
+                    ),
+                    html.Button("Clear", id="clear-end-date", style={
+                        'background': f'linear-gradient(135deg, {COLORS["light_green"]} 0%, #1E8E00 100%)',
+                        'color': COLORS['night_black'],
+                        'border': 'none',
+                        'padding': '4px 8px',
+                        'border-radius': '4px',
+                        'font-weight': '600',
+                        'cursor': 'pointer',
+                        'font-size': '10px',
+                        'margin-top': '4px',
+                        'font-family': 'Montserrat, sans-serif'
+                    })
                 ], style={'display': 'flex', 'flex-direction': 'column'}),
 
                 html.Div([
-                    html.Label("Category",
-                               style={'color': COLORS['light_gray'], 'font-weight': '600', 'margin-bottom': '10px',
-                                      'font-size': '16px'}),
-                    dcc.Dropdown(id="category-filter", options=category_options, value=None,
-                                 placeholder="Search categories...", searchable=True, clearable=True),
-                    html.Button("Clear", id="clear-category",
-                                style={'background': 'linear-gradient(135deg, #22C70C 0%, #1E8E00 100%)',
-                                       'color': COLORS['night_black'], 'border': 'none', 'padding': '8px 16px',
-                                       'border-radius': '6px', 'font-weight': '600', 'cursor': 'pointer',
-                                       'font-size': '12px', 'margin-top': '8px'})
+                    html.Label("Category", style={
+                        'color': COLORS['light_gray'],
+                        'font-weight': '600',
+                        'margin-bottom': '8px',
+                        'font-size': '14px',
+                        'font-family': 'Montserrat, sans-serif'
+                    }),
+                    dcc.Dropdown(
+                        id="category-filter",
+                        options=category_options,
+                        value=None,
+                        placeholder="Categories...",
+                        searchable=True,
+                        clearable=True,
+                        style={
+                            'background-color': COLORS['dark_gray'],
+                            'color': COLORS['light_gray'],
+                            'font-family': 'Montserrat, sans-serif',
+                            'font-size': '12px'
+                        }
+                    ),
+                    html.Button("Clear", id="clear-category", style={
+                        'background': f'linear-gradient(135deg, {COLORS["light_green"]} 0%, #1E8E00 100%)',
+                        'color': COLORS['night_black'],
+                        'border': 'none',
+                        'padding': '4px 8px',
+                        'border-radius': '4px',
+                        'font-weight': '600',
+                        'cursor': 'pointer',
+                        'font-size': '10px',
+                        'margin-top': '4px',
+                        'font-family': 'Montserrat, sans-serif'
+                    })
                 ], style={'display': 'flex', 'flex-direction': 'column'}),
 
                 html.Div([
-                    html.Label("Buyer",
-                               style={'color': COLORS['light_gray'], 'font-weight': '600', 'margin-bottom': '10px',
-                                      'font-size': '16px'}),
-                    dcc.Dropdown(id="buyer-filter", options=buyer_options, value=None, placeholder="Search buyers...",
-                                 searchable=True, clearable=True),
-                    html.Button("Clear", id="clear-buyer",
-                                style={'background': 'linear-gradient(135deg, #22C70C 0%, #1E8E00 100%)',
-                                       'color': COLORS['night_black'], 'border': 'none', 'padding': '8px 16px',
-                                       'border-radius': '6px', 'font-weight': '600', 'cursor': 'pointer',
-                                       'font-size': '12px', 'margin-top': '8px'})
+                    html.Label("Buyer", style={
+                        'color': COLORS['light_gray'],
+                        'font-weight': '600',
+                        'margin-bottom': '8px',
+                        'font-size': '14px',
+                        'font-family': 'Montserrat, sans-serif'
+                    }),
+                    dcc.Dropdown(
+                        id="buyer-filter",
+                        options=buyer_options,
+                        value=None,
+                        placeholder="Buyers...",
+                        searchable=True,
+                        clearable=True,
+                        style={
+                            'background-color': COLORS['dark_gray'],
+                            'color': COLORS['light_gray'],
+                            'font-family': 'Montserrat, sans-serif',
+                            'font-size': '12px'
+                        }
+                    ),
+                    html.Button("Clear", id="clear-buyer", style={
+                        'background': f'linear-gradient(135deg, {COLORS["light_green"]} 0%, #1E8E00 100%)',
+                        'color': COLORS['night_black'],
+                        'border': 'none',
+                        'padding': '4px 8px',
+                        'border-radius': '4px',
+                        'font-weight': '600',
+                        'cursor': 'pointer',
+                        'font-size': '10px',
+                        'margin-top': '4px',
+                        'font-family': 'Montserrat, sans-serif'
+                    })
                 ], style={'display': 'flex', 'flex-direction': 'column'}),
 
                 html.Div([
-                    html.Label("Seller",
-                               style={'color': COLORS['light_gray'], 'font-weight': '600', 'margin-bottom': '10px',
-                                      'font-size': '16px'}),
-                    dcc.Dropdown(id="seller-filter", options=seller_options, value=None,
-                                 placeholder="Search sellers...", searchable=True, clearable=True),
-                    html.Button("Clear", id="clear-seller",
-                                style={'background': 'linear-gradient(135deg, #22C70C 0%, #1E8E00 100%)',
-                                       'color': COLORS['night_black'], 'border': 'none', 'padding': '8px 16px',
-                                       'border-radius': '6px', 'font-weight': '600', 'cursor': 'pointer',
-                                       'font-size': '12px', 'margin-top': '8px'})
+                    html.Label("Seller", style={
+                        'color': COLORS['light_gray'],
+                        'font-weight': '600',
+                        'margin-bottom': '8px',
+                        'font-size': '14px',
+                        'font-family': 'Montserrat, sans-serif'
+                    }),
+                    dcc.Dropdown(
+                        id="seller-filter",
+                        options=seller_options,
+                        value=None,
+                        placeholder="Sellers...",
+                        searchable=True,
+                        clearable=True,
+                        style={
+                            'background-color': COLORS['dark_gray'],
+                            'color': COLORS['light_gray'],
+                            'font-family': 'Montserrat, sans-serif',
+                            'font-size': '12px'
+                        }
+                    ),
+                    html.Button("Clear", id="clear-seller", style={
+                        'background': f'linear-gradient(135deg, {COLORS["light_green"]} 0%, #1E8E00 100%)',
+                        'color': COLORS['night_black'],
+                        'border': 'none',
+                        'padding': '4px 8px',
+                        'border-radius': '4px',
+                        'font-weight': '600',
+                        'cursor': 'pointer',
+                        'font-size': '10px',
+                        'margin-top': '4px',
+                        'font-family': 'Montserrat, sans-serif'
+                    })
                 ], style={'display': 'flex', 'flex-direction': 'column'}),
 
                 html.Div([
-                    html.Label("HS Code",
-                               style={'color': COLORS['light_gray'], 'font-weight': '600', 'margin-bottom': '10px',
-                                      'font-size': '16px'}),
-                    dcc.Dropdown(id="hs-code-filter", options=hs_code_options, value=None,
-                                 placeholder="Search HS codes...", searchable=True, clearable=True),
-                    html.Button("Clear", id="clear-hs-code",
-                                style={'background': 'linear-gradient(135deg, #22C70C 0%, #1E8E00 100%)',
-                                       'color': COLORS['night_black'], 'border': 'none', 'padding': '8px 16px',
-                                       'border-radius': '6px', 'font-weight': '600', 'cursor': 'pointer',
-                                       'font-size': '12px', 'margin-top': '8px'})
+                    html.Label("HS Code", style={
+                        'color': COLORS['light_gray'],
+                        'font-weight': '600',
+                        'margin-bottom': '8px',
+                        'font-size': '14px',
+                        'font-family': 'Montserrat, sans-serif'
+                    }),
+                    dcc.Dropdown(
+                        id="hs-code-filter",
+                        options=hs_code_options,
+                        value=None,
+                        placeholder="HS Codes...",
+                        searchable=True,
+                        clearable=True,
+                        style={
+                            'background-color': COLORS['dark_gray'],
+                            'color': COLORS['light_gray'],
+                            'font-family': 'Montserrat, sans-serif',
+                            'font-size': '12px'
+                        }
+                    ),
+                    html.Button("Clear", id="clear-hs-code", style={
+                        'background': f'linear-gradient(135deg, {COLORS["light_green"]} 0%, #1E8E00 100%)',
+                        'color': COLORS['night_black'],
+                        'border': 'none',
+                        'padding': '4px 8px',
+                        'border-radius': '4px',
+                        'font-weight': '600',
+                        'cursor': 'pointer',
+                        'font-size': '10px',
+                        'margin-top': '4px',
+                        'font-family': 'Montserrat, sans-serif'
+                    })
                 ], style={'display': 'flex', 'flex-direction': 'column'}),
 
                 html.Div([
-                    html.Label("Country of Origin",
-                               style={'color': COLORS['light_gray'], 'font-weight': '600', 'margin-bottom': '10px',
-                                      'font-size': '16px'}),
-                    dcc.Dropdown(id="country-filter", options=country_options, value=None,
-                                 placeholder="Search countries...", searchable=True, clearable=True),
-                    html.Button("Clear", id="clear-country",
-                                style={'background': 'linear-gradient(135deg, #22C70C 0%, #1E8E00 100%)',
-                                       'color': COLORS['night_black'], 'border': 'none', 'padding': '8px 16px',
-                                       'border-radius': '6px', 'font-weight': '600', 'cursor': 'pointer',
-                                       'font-size': '12px', 'margin-top': '8px'})
+                    html.Label("Country", style={
+                        'color': COLORS['light_gray'],
+                        'font-weight': '600',
+                        'margin-bottom': '8px',
+                        'font-size': '14px',
+                        'font-family': 'Montserrat, sans-serif'
+                    }),
+                    dcc.Dropdown(
+                        id="country-filter",
+                        options=country_options,
+                        value=None,
+                        placeholder="Countries...",
+                        searchable=True,
+                        clearable=True,
+                        style={
+                            'background-color': COLORS['dark_gray'],
+                            'color': COLORS['light_gray'],
+                            'font-family': 'Montserrat, sans-serif',
+                            'font-size': '12px'
+                        }
+                    ),
+                    html.Button("Clear", id="clear-country", style={
+                        'background': f'linear-gradient(135deg, {COLORS["light_green"]} 0%, #1E8E00 100%)',
+                        'color': COLORS['night_black'],
+                        'border': 'none',
+                        'padding': '4px 8px',
+                        'border-radius': '4px',
+                        'font-weight': '600',
+                        'cursor': 'pointer',
+                        'font-size': '10px',
+                        'margin-top': '4px',
+                        'font-family': 'Montserrat, sans-serif'
+                    })
                 ], style={'display': 'flex', 'flex-direction': 'column'}),
-            ], style={'display': 'grid', 'grid-template-columns': 'repeat(7, 1fr)', 'gap': '20px',
-                      'align-items': 'start'})
-        ], style={'background': COLORS['night_black'], 'padding': '25px 30px',
-                  'border-bottom': f'2px solid {COLORS["dark_gray"]}'}),
+            ], style={
+                'display': 'grid',
+                'grid-template-columns': 'repeat(7, 1fr)',
+                'gap': '15px',
+                'align-items': 'start'
+            })
+        ], style={
+            'background': COLORS['night_black'],
+            'padding': '20px 30px',
+            'border-bottom': f'2px solid {COLORS["dark_gray"]}'
+        }),
 
-        # Key Metrics Cards
-        html.Div(id="metric-cards",
-                 style={'display': 'grid', 'grid-template-columns': 'repeat(4, 1fr)', 'gap': '25px', 'margin': '30px'}),
+        # KEY METRICS CARDS - THE DATA BAR YOU WANTED BACK
+        html.Div(id="metric-cards", style={
+            'display': 'grid',
+            'grid-template-columns': 'repeat(4, 1fr)',
+            'gap': '20px',
+            'margin': '25px 30px',
+            'background': COLORS['night_black']
+        }),
 
-        # Charts Section
-        html.Div(id="charts-container",
-                 style={'display': 'grid', 'grid-template-columns': 'repeat(3, 1fr)', 'gap': '25px', 'padding': '25px',
-                        'background': COLORS['night_black']}),
+        # 6 CHARTS SECTION - EXACTLY AS REQUESTED
+        html.Div(id="charts-container", style={
+            'display': 'grid',
+            'grid-template-columns': 'repeat(3, 1fr)',
+            'gap': '20px',
+            'padding': '25px 30px',
+            'background': COLORS['night_black']
+        }),
 
         # Hidden div to store filtered data
         html.Div(id="filtered-data-store", style={'display': 'none'})
-    ], style={'background-color': COLORS['night_black'], 'color': COLORS['light_gray'],
-              'font-family': 'Montserrat, sans-serif'})
 
+    ], style={
+        'background-color': COLORS['night_black'],
+        'color': COLORS['light_gray'],
+        'font-family': 'Montserrat, sans-serif',
+        'min-height': '100vh'
+    })
 
-# MAIN APP LAYOUT WITH AUTHENTICATION
-def serve_layout():
-    """Serve appropriate layout based on authentication status"""
-    if current_user.is_authenticated:
-        return create_protected_layout()
-    else:
-        return create_login_layout()
+    # MAIN APP LAYOUT WITH AUTHENTICATION
+    def serve_layout():
+        """Serve appropriate layout based on authentication status"""
+        if current_user.is_authenticated:
+            return create_protected_layout()
+        else:
+            return create_login_layout()
 
+    app.layout = serve_layout
 
-app.layout = serve_layout
-
-
-# AUTHENTICATION CALLBACKS
-@app.callback(
-    [Output('login-status', 'children'),
-     Output('username-input', 'value'),
-     Output('password-input', 'value')],
-    [Input('login-button', 'n_clicks')],
-    [State('username-input', 'value'),
-     State('password-input', 'value')]
-)
-def handle_login(n_clicks, username, password):
-    if n_clicks and username and password:
-        if username in USERS_DB:
-            if check_password_hash(USERS_DB[username]['password_hash'], password):
-                user = User(username, USERS_DB[username]['role'])
-                login_user(user)
-                return [
-                    html.Div("✅ Login successful! Redirecting...",
-                             style={'color': COLORS['light_green'], 'font-weight': 'bold'}),
-                    "", ""
-                ]
+    # AUTHENTICATION CALLBACKS
+    @app.callback(
+        [Output('login-status', 'children'),
+         Output('username-input', 'value'),
+         Output('password-input', 'value')],
+        [Input('login-button', 'n_clicks')],
+        [State('username-input', 'value'),
+         State('password-input', 'value')]
+    )
+    def handle_login(n_clicks, username, password):
+        if n_clicks and username and password:
+            if username in USERS_DB:
+                if check_password_hash(USERS_DB[username]['password_hash'], password):
+                    user = User(username, USERS_DB[username]['role'])
+                    login_user(user)
+                    return [
+                        html.Div("✅ Login successful! Refreshing...",
+                                 style={'color': COLORS['light_green'], 'font-weight': 'bold',
+                                        'font-family': 'Montserrat, sans-serif'}),
+                        "", ""
+                    ]
+                else:
+                    return [
+                        html.Div("❌ Invalid password!",
+                                 style={'color': '#FF6B6B', 'font-weight': 'bold',
+                                        'font-family': 'Montserrat, sans-serif'}),
+                        username, ""
+                    ]
             else:
                 return [
-                    html.Div("❌ Invalid password!",
-                             style={'color': '#FF6B6B', 'font-weight': 'bold'}),
-                    username, ""
+                    html.Div("❌ User not found!",
+                             style={'color': '#FF6B6B', 'font-weight': 'bold',
+                                    'font-family': 'Montserrat, sans-serif'}),
+                    "", ""
                 ]
-        else:
-            return [
-                html.Div("❌ User not found!",
-                         style={'color': '#FF6B6B', 'font-weight': 'bold'}),
-                "", ""
-            ]
+        return ["", username or "", password or ""]
 
-    return ["", username or "", password or ""]
+    # LOGOUT ROUTE
+    @server.route('/logout')
+    def logout():
+        logout_user()
+        return redirect('/')
 
-
-# ENHANCED PROTECTED CALLBACKS WITH BETTER ERROR HANDLING
-@app.callback(
-    [Output("filtered-data-store", "children"),
-     Output("metric-cards", "children")],
-    [Input("start-date", "value"),
-     Input("end-date", "value"),
-     Input("category-filter", "value"),
-     Input("buyer-filter", "value"),
-     Input("seller-filter", "value"),
-     Input("hs-code-filter", "value"),
-     Input("country-filter", "value")]
-)
-def update_filtered_data_and_metrics(start_date, end_date, category, buyer, seller, hs_code, country):
-    """Enhanced filtering with proper validation"""
-    if not current_user.is_authenticated:
-        return "", []
-
-    try:
+    # FILTER DATA FUNCTION
+    def filter_data(df, start_date=None, end_date=None, buyer=None, seller=None,
+                    hs_code=None, country=None, category=None):
+        """Apply all filters to the dataframe"""
         filtered_df = df.copy()
 
-        # Apply date filters with enhanced validation
-        if start_date and start_date.strip():
-            try:
-                start_parsed = parse_date_simple(start_date)
-                if start_parsed:
-                    filtered_df = filtered_df[filtered_df['Date'].dt.date >= start_parsed]
-            except Exception as e:
-                print(f"Error parsing start date: {e}")
+        if start_date:
+            start_parsed = parse_date_simple(start_date)
+            if start_parsed:
+                filtered_df = filtered_df[filtered_df['Date'].dt.date >= start_parsed]
 
-        if end_date and end_date.strip():
-            try:
-                end_parsed = parse_date_simple(end_date)
-                if end_parsed:
-                    filtered_df = filtered_df[filtered_df['Date'].dt.date <= end_parsed]
-            except Exception as e:
-                print(f"Error parsing end date: {e}")
+        if end_date:
+            end_parsed = parse_date_simple(end_date)
+            if end_parsed:
+                filtered_df = filtered_df[filtered_df['Date'].dt.date <= end_parsed]
 
-        # Apply categorical filters with validation
-        if category and category in filtered_df['Category'].values:
-            filtered_df = filtered_df[filtered_df['Category'] == category]
-
-        # Smart buyer/seller logic with validation
-        if buyer and seller:
-            if buyer in filtered_df['Buyer'].values and seller in filtered_df['Seller'].values:
-                filtered_df = filtered_df[(filtered_df['Buyer'] == buyer) & (filtered_df['Seller'] == seller)]
-        elif buyer and buyer in filtered_df['Buyer'].values:
+        if buyer:
             filtered_df = filtered_df[filtered_df['Buyer'] == buyer]
-        elif seller and seller in filtered_df['Seller'].values:
+
+        if seller:
             filtered_df = filtered_df[filtered_df['Seller'] == seller]
 
-        if hs_code and hs_code in filtered_df['HS Code'].astype(str).values:
-            filtered_df = filtered_df[filtered_df['HS Code'].astype(str) == hs_code]
+        if hs_code:
+            filtered_df = filtered_df[filtered_df['HS Code'].astype(str) == str(hs_code)]
 
-        if country and country in filtered_df['Country of Origin'].values:
+        if country:
             filtered_df = filtered_df[filtered_df['Country of Origin'] == country]
 
-        # Calculate metrics with proper error handling
-        total_transactions = len(filtered_df)
-        total_volume = filtered_df['Metric Tons'].sum() if len(filtered_df) > 0 else 0
-        total_value = filtered_df['Total calculated value ($)'].sum() if len(filtered_df) > 0 else 0
-        avg_price = filtered_df['Val/KG ($)'].mean() if len(filtered_df) > 0 else 0
+        if category:
+            filtered_df = filtered_df[filtered_df['Category'] == category]
 
-        # Handle NaN values
-        if pd.isna(total_volume):
-            total_volume = 0
-        if pd.isna(total_value):
-            total_value = 0
-        if pd.isna(avg_price):
-            avg_price = 0
+        return filtered_df
 
-        # Create enhanced metric cards
-        metric_cards = [
-            html.Div([
-                html.H3(f"{total_transactions:,}", className="metric-value"),
-                html.P("Total Transactions", className="metric-label")
-            ], className="metric-card"),
+    # MAIN DASHBOARD CALLBACK - UPDATES EVERYTHING
+    @app.callback(
+        [Output('metric-cards', 'children'),
+         Output('charts-container', 'children')],
+        [Input('start-date', 'value'),
+         Input('end-date', 'value'),
+         Input('buyer-filter', 'value'),
+         Input('seller-filter', 'value'),
+         Input('hs-code-filter', 'value'),
+         Input('country-filter', 'value'),
+         Input('category-filter', 'value'),
+         Input('clear-all-btn', 'n_clicks'),
+         Input('clear-start-date', 'n_clicks'),
+         Input('clear-end-date', 'n_clicks'),
+         Input('clear-buyer', 'n_clicks'),
+         Input('clear-seller', 'n_clicks'),
+         Input('clear-hs-code', 'n_clicks'),
+         Input('clear-country', 'n_clicks'),
+         Input('clear-category', 'n_clicks')]
+    )
+    def update_dashboard(start_date, end_date, buyer_filter, seller_filter, hs_code_filter,
+                         country_filter, category_filter, clear_all, clear_start, clear_end,
+                         clear_buyer, clear_seller, clear_hs, clear_country, clear_cat):
 
-            html.Div([
-                html.H3(f"{total_volume:,.1f}", className="metric-value"),
-                html.P("Metric Tons", className="metric-label")
-            ], className="metric-card"),
-
-            html.Div([
-                html.H3(f"${total_value:,.0f}", className="metric-value"),
-                html.P("Total Value", className="metric-label")
-            ], className="metric-card"),
-
-            html.Div([
-                html.H3(f"${avg_price:.2f}", className="metric-value"),
-                html.P("Avg Price/KG", className="metric-label")
-            ], className="metric-card")
-        ]
-
-        return filtered_df.to_json(date_format='iso', orient='split'), metric_cards
-
-    except Exception as e:
-        print(f"Error in filtering: {e}")
-        return df.to_json(date_format='iso', orient='split'), []
-
-
-@app.callback(
-    Output("charts-container", "children"),
-    Input("filtered-data-store", "children")
-)
-def update_charts(filtered_data_json):
-    """Update all charts with enhanced error handling"""
-    if not current_user.is_authenticated:
-        return []
-
-    try:
-        if not filtered_data_json:
-            return create_default_charts()
-
-        filtered_data = pd.read_json(filtered_data_json, orient='split')
-        filtered_data['Date'] = pd.to_datetime(filtered_data['Date'])
-
-        if len(filtered_data) == 0:
-            return [html.Div("No data matches your current filters. Try adjusting your filter settings.",
-                             style={
-                                 'color': COLORS['light_gray'],
-                                 'text-align': 'center',
-                                 'padding': '50px',
-                                 'grid-column': '1 / -1',
-                                 'font-size': '18px',
-                                 'background': f'linear-gradient(135deg, {COLORS["dark_gray"]} 0%, {COLORS["night_black"]} 100%)',
-                                 'border-radius': '15px',
-                                 'border': f'2px dashed {COLORS["light_blue"]}'
-                             })]
-
-        # Create all charts with error handling
-        charts = []
         try:
-            charts.append(html.Div([
-                dcc.Graph(
-                    figure=create_buyer_analysis_chart(filtered_data),
-                    config={
-                        'displayModeBar': True,
-                        'displaylogo': False,
-                        'modeBarButtonsToAdd': ['downloadPlot'],
-                        'toImageButtonOptions': {
-                            'format': 'png',
-                            'filename': 'buyer_analysis',
-                            'height': 800,
-                            'width': 1200,
-                            'scale': 2
-                        }
-                    }
-                )
-            ], className="chart-item"))
+            # Handle clear button clicks
+            if ctx.triggered:
+                button_id = ctx.triggered[0]['prop_id'].split('.')[0]
+                if button_id in ['clear-all-btn', 'clear-start-date', 'clear-end-date', 'clear-buyer',
+                                 'clear-seller', 'clear-hs-code', 'clear-country', 'clear-category']:
+                    if button_id == 'clear-all-btn':
+                        start_date = end_date = buyer_filter = seller_filter = None
+                        hs_code_filter = country_filter = category_filter = None
+                    elif button_id == 'clear-start-date':
+                        start_date = None
+                    elif button_id == 'clear-end-date':
+                        end_date = None
+                    elif button_id == 'clear-buyer':
+                        buyer_filter = None
+                    elif button_id == 'clear-seller':
+                        seller_filter = None
+                    elif button_id == 'clear-hs-code':
+                        hs_code_filter = None
+                    elif button_id == 'clear-country':
+                        country_filter = None
+                    elif button_id == 'clear-category':
+                        category_filter = None
 
-            charts.append(html.Div([
-                dcc.Graph(
-                    figure=create_seller_analysis_chart(filtered_data),
-                    config={
-                        'displayModeBar': True,
-                        'displaylogo': False,
-                        'modeBarButtonsToAdd': ['downloadPlot'],
-                        'toImageButtonOptions': {
-                            'format': 'png',
-                            'filename': 'seller_analysis',
-                            'height': 800,
-                            'width': 1200,
-                            'scale': 2
-                        }
-                    }
-                )
-            ], className="chart-item"))
+            # Filter the data
+            filtered_data = filter_data(df, start_date, end_date, buyer_filter, seller_filter,
+                                        hs_code_filter, country_filter, category_filter)
 
-            charts.append(html.Div([
-                dcc.Graph(
-                    figure=create_country_distribution_chart(filtered_data),
-                    config={
-                        'displayModeBar': True,
-                        'displaylogo': False,
-                        'modeBarButtonsToAdd': ['downloadPlot'],
-                        'toImageButtonOptions': {
-                            'format': 'png',
-                            'filename': 'country_distribution',
-                            'height': 800,
-                            'width': 1200,
-                            'scale': 2
-                        }
-                    }
-                )
-            ], className="chart-item"))
+            # Create metric cards
+            if len(filtered_data) > 0:
+                total_volume = filtered_data['Metric Tons'].sum()
+                total_value = filtered_data['Total calculated value ($)'].sum()
+                avg_price = filtered_data['Val/KG ($)'].mean()
+                transaction_count = len(filtered_data)
 
-            charts.append(html.Div([
-                dcc.Graph(
-                    figure=create_category_pie_chart(filtered_data),
-                    config={
-                        'displayModeBar': True,
-                        'displaylogo': False,
-                        'modeBarButtonsToAdd': ['downloadPlot'],
-                        'toImageButtonOptions': {
-                            'format': 'png',
-                            'filename': 'category_analysis',
-                            'height': 800,
-                            'width': 1200,
-                            'scale': 2
-                        }
-                    }
-                )
-            ], className="chart-item"))
+                metric_cards = [
+                    html.Div([
+                        html.H3(f"{total_volume:,.0f}",
+                                style={'color': COLORS['light_blue'], 'margin': '0', 'font-size': '28px',
+                                       'font-family': 'Montserrat, sans-serif'}),
+                        html.P("Metric Tons", style={'color': COLORS['light_gray'], 'margin': '5px 0 0 0',
+                                                     'font-family': 'Montserrat, sans-serif'})
+                    ], style={'background': COLORS['dark_gray'], 'padding': '20px', 'border-radius': '12px',
+                              'text-align': 'center'}),
 
-            charts.append(html.Div([
-                dcc.Graph(
-                    figure=create_time_series_chart(filtered_data),
-                    config={
-                        'displayModeBar': True,
-                        'displaylogo': False,
-                        'modeBarButtonsToAdd': ['downloadPlot'],
-                        'toImageButtonOptions': {
-                            'format': 'png',
-                            'filename': 'time_series',
-                            'height': 800,
-                            'width': 1200,
-                            'scale': 2
-                        }
-                    }
-                )
-            ], className="chart-item"))
+                    html.Div([
+                        html.H3(f"${total_value:,.0f}",
+                                style={'color': COLORS['light_green'], 'margin': '0', 'font-size': '28px',
+                                       'font-family': 'Montserrat, sans-serif'}),
+                        html.P("Total Value", style={'color': COLORS['light_gray'], 'margin': '5px 0 0 0',
+                                                     'font-family': 'Montserrat, sans-serif'})
+                    ], style={'background': COLORS['dark_gray'], 'padding': '20px', 'border-radius': '12px',
+                              'text-align': 'center'}),
 
-            charts.append(html.Div([
-                dcc.Graph(
-                    figure=create_waterfall_chart(filtered_data),
-                    config={
-                        'displayModeBar': True,
-                        'displaylogo': False,
-                        'modeBarButtonsToAdd': ['downloadPlot'],
-                        'toImageButtonOptions': {
-                            'format': 'png',
-                            'filename': 'waterfall_analysis',
-                            'height': 800,
-                            'width': 1200,
-                            'scale': 2
-                        }
-                    }
-                )
-            ], className="chart-item"))
+                    html.Div([
+                        html.H3(f"${avg_price:.2f}",
+                                style={'color': COLORS['purple'], 'margin': '0', 'font-size': '28px',
+                                       'font-family': 'Montserrat, sans-serif'}),
+                        html.P("Avg Price/KG", style={'color': COLORS['light_gray'], 'margin': '5px 0 0 0',
+                                                      'font-family': 'Montserrat, sans-serif'})
+                    ], style={'background': COLORS['dark_gray'], 'padding': '20px', 'border-radius': '12px',
+                              'text-align': 'center'}),
+
+                    html.Div([
+                        html.H3(f"{transaction_count:,}",
+                                style={'color': COLORS['light_blue'], 'margin': '0', 'font-size': '28px',
+                                       'font-family': 'Montserrat, sans-serif'}),
+                        html.P("Transactions", style={'color': COLORS['light_gray'], 'margin': '5px 0 0 0',
+                                                      'font-family': 'Montserrat, sans-serif'})
+                    ], style={'background': COLORS['dark_gray'], 'padding': '20px', 'border-radius': '12px',
+                              'text-align': 'center'})
+                ]
+            else:
+                metric_cards = [
+                    html.Div([
+                        html.H3("No Data", style={'color': COLORS['light_gray'], 'margin': '0',
+                                                  'font-family': 'Montserrat, sans-serif'}),
+                        html.P("Apply filters", style={'color': COLORS['light_gray'], 'margin': '5px 0 0 0',
+                                                       'font-family': 'Montserrat, sans-serif'})
+                    ], style={'background': COLORS['dark_gray'], 'padding': '20px', 'border-radius': '12px',
+                              'text-align': 'center'})
+                    for _ in range(4)
+                ]
+
+            # Create the 6 charts you requested
+            try:
+                charts = [
+                    html.Div([
+                        dcc.Graph(figure=create_buyer_analysis_chart(filtered_data), config={'displayModeBar': True})
+                    ], style={'background': COLORS['night_black'], 'border-radius': '12px', 'padding': '15px'}),
+
+                    html.Div([
+                        dcc.Graph(figure=create_seller_analysis_chart(filtered_data), config={'displayModeBar': True})
+                    ], style={'background': COLORS['night_black'], 'border-radius': '12px', 'padding': '15px'}),
+
+                    html.Div([
+                        dcc.Graph(figure=create_category_pie_chart(filtered_data), config={'displayModeBar': True})
+                    ], style={'background': COLORS['night_black'], 'border-radius': '12px', 'padding': '15px'}),
+
+                    html.Div([
+                        dcc.Graph(figure=create_country_distribution_chart(filtered_data),
+                                  config={'displayModeBar': True})
+                    ], style={'background': COLORS['night_black'], 'border-radius': '12px', 'padding': '15px'}),
+
+                    html.Div([
+                        dcc.Graph(figure=create_time_series_chart(filtered_data), config={'displayModeBar': True})
+                    ], style={'background': COLORS['night_black'], 'border-radius': '12px', 'padding': '15px'}),
+
+                    html.Div([
+                        dcc.Graph(figure=create_hs_code_analysis_chart(filtered_data), config={'displayModeBar': True})
+                    ], style={'background': COLORS['night_black'], 'border-radius': '12px', 'padding': '15px'})
+                ]
+
+            except Exception as e:
+                print(f"Error creating charts: {e}")
+                charts = [
+                    html.Div([
+                        html.H3("Error creating charts", style={'color': COLORS['light_gray'], 'text-align': 'center',
+                                                                'font-family': 'Montserrat, sans-serif'}),
+                        html.P(str(e), style={'color': COLORS['light_gray'], 'text-align': 'center',
+                                              'font-family': 'Montserrat, sans-serif'})
+                    ], style={'background': COLORS['dark_gray'], 'padding': '20px', 'border-radius': '12px'})
+                    for _ in range(6)
+                ]
+
+            return metric_cards, charts
 
         except Exception as e:
-            print(f"Error creating individual chart: {e}")
-            charts.append(html.Div(f"Error creating chart: {str(e)}", style={'color': COLORS['light_gray']}))
+            print(f"Dashboard error: {e}")
 
-        return charts
+            error_cards = [
+                html.Div([
+                    html.H3("Error", style={'color': COLORS['light_gray'], 'margin': '0',
+                                            'font-family': 'Montserrat, sans-serif'}),
+                    html.P("Dashboard Error", style={'color': COLORS['light_gray'], 'margin': '5px 0 0 0',
+                                                     'font-family': 'Montserrat, sans-serif'})
+                ], style={'background': COLORS['dark_gray'], 'padding': '20px', 'border-radius': '12px',
+                          'text-align': 'center'})
+                for _ in range(4)
+            ]
 
-    except Exception as e:
-        print(f"Error in update_charts: {e}")
-        return [html.Div("Error loading charts. Please try refreshing the page.",
-                         style={'color': '#FF6B6B', 'text-align': 'center', 'padding': '50px'})]
+            error_charts = [
+                html.Div([
+                    html.H3("Error loading chart", style={'color': COLORS['light_gray'], 'text-align': 'center',
+                                                          'font-family': 'Montserrat, sans-serif'})
+                ], style={'background': COLORS['dark_gray'], 'padding': '20px', 'border-radius': '12px'})
+                for _ in range(6)
+            ]
 
+            return error_cards, error_charts
 
-def create_default_charts():
-    """Create default charts with full dataset"""
-    if len(df) == 0:
-        return [html.Div("No data available. Please check your data file.",
-                         style={'color': COLORS['light_gray'], 'text-align': 'center', 'grid-column': '1 / -1'})]
+    # CSS STYLING - FORCES NIGHT BLACK EVERYWHERE
+    app.index_string = '''
+    <!DOCTYPE html>
+    <html>
+        <head>
+            {%metas%}
+            <title>{%title%}</title>
+            {%favicon%}
+            {%css%}
+            <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+            <style>
+                * {
+                    font-family: 'Montserrat', sans-serif !important;
+                    box-sizing: border-box;
+                }
+                body, html {
+                    background-color: #191B27 !important;
+                    margin: 0;
+                    padding: 0;
+                    color: #DCE4F2 !important;
+                }
+                .Select-control, .Select-menu-outer, .Select-option {
+                    background-color: #2D354A !important;
+                    color: #DCE4F2 !important;
+                    border-color: #2D354A !important;
+                }
+                .dash-dropdown .Select-value-label {
+                    color: #DCE4F2 !important;
+                }
+                .dash-dropdown .Select-placeholder {
+                    color: #DCE4F2 !important;
+                }
+            </style>
+        </head>
+        <body>
+            {%app_entry%}
+            <footer>
+                {%config%}
+                {%scripts%}
+                {%renderer%}
+            </footer>
+        </body>
+    </html>
+    '''
 
-    try:
-        return [
-            html.Div([dcc.Graph(figure=create_buyer_analysis_chart(df),
-                                config={'displayModeBar': True, 'displaylogo': False})], className="chart-item"),
-            html.Div([dcc.Graph(figure=create_seller_analysis_chart(df),
-                                config={'displayModeBar': True, 'displaylogo': False})], className="chart-item"),
-            html.Div([dcc.Graph(figure=create_country_distribution_chart(df),
-                                config={'displayModeBar': True, 'displaylogo': False})], className="chart-item"),
-            html.Div([dcc.Graph(figure=create_category_pie_chart(df),
-                                config={'displayModeBar': True, 'displaylogo': False})], className="chart-item"),
-            html.Div(
-                [dcc.Graph(figure=create_time_series_chart(df), config={'displayModeBar': True, 'displaylogo': False})],
-                className="chart-item"),
-            html.Div(
-                [dcc.Graph(figure=create_waterfall_chart(df), config={'displayModeBar': True, 'displaylogo': False})],
-                className="chart-item")
-        ]
-    except Exception as e:
-        print(f"Error creating default charts: {e}")
-        return [html.Div("Error creating charts.", style={'color': COLORS['light_gray']})]
+    # SERVER SETUP
+    server = app.server
 
-
-# CLEAR FILTER CALLBACKS
-@app.callback(Output("start-date", "value"), Input("clear-start-date", "n_clicks"))
-def clear_start_date(n_clicks):
-    if n_clicks: return ""
-    return dash.no_update
-
-
-@app.callback(Output("end-date", "value"), Input("clear-end-date", "n_clicks"))
-def clear_end_date(n_clicks):
-    if n_clicks: return ""
-    return dash.no_update
-
-
-@app.callback(Output("category-filter", "value"), Input("clear-category", "n_clicks"))
-def clear_category(n_clicks):
-    if n_clicks: return None
-    return dash.no_update
-
-
-@app.callback(Output("buyer-filter", "value"), Input("clear-buyer", "n_clicks"))
-def clear_buyer(n_clicks):
-    if n_clicks: return None
-    return dash.no_update
-
-
-@app.callback(Output("seller-filter", "value"), Input("clear-seller", "n_clicks"))
-def clear_seller(n_clicks):
-    if n_clicks: return None
-    return dash.no_update
-
-
-@app.callback(Output("hs-code-filter", "value"), Input("clear-hs-code", "n_clicks"))
-def clear_hs_code(n_clicks):
-    if n_clicks: return None
-    return dash.no_update
-
-
-@app.callback(Output("country-filter", "value"), Input("clear-country", "n_clicks"))
-def clear_country(n_clicks):
-    if n_clicks: return None
-    return dash.no_update
-
-
-@app.callback(
-    [Output("start-date", "value", allow_duplicate=True),
-     Output("end-date", "value", allow_duplicate=True),
-     Output("category-filter", "value", allow_duplicate=True),
-     Output("buyer-filter", "value", allow_duplicate=True),
-     Output("seller-filter", "value", allow_duplicate=True),
-     Output("hs-code-filter", "value", allow_duplicate=True),
-     Output("country-filter", "value", allow_duplicate=True)],
-    Input("clear-all-btn", "n_clicks"),
-    prevent_initial_call=True
-)
-def clear_all_filters(n_clicks):
-    if n_clicks:
-        return "", "", None, None, None, None, None
-    return dash.no_update
-
-
-# LOGOUT ROUTE
-@server.route('/logout')
-def logout():
-    logout_user()
-    return redirect('/')
-
-
-# RUN THE APP
-if __name__ == '__main__':
-    port = int(os.environ.get('PORT', 8050))
-
-    print("🌊 PRY MARITIME TRADE ANALYTICS DASHBOARD")
-    print("🔐 HEROKU-READY WITH AUTHENTICATION")
-    print("🖱️  CLICKABLE CHARTS WITH DOWNLOAD OPTIONS")
-    print("=" * 60)
-    print("👥 Your Custom Accounts:")
-    print("   • bdistel17$$ / bad_bunny1017$$")
-    print("   • cbarnard2025 / admin_equityinsight!")
-    print("   • PRY_Admin / 382716!")
-    print("=" * 60)
-    print(f"🚀 Starting on port {port}")
-
-    if len(df) > 0:
-        print(f"✅ Loaded {len(df):,} transactions")
-        print(f"📊 Date range: {df['Date'].min().strftime('%Y-%m-%d')} to {df['Date'].max().strftime('%Y-%m-%d')}")
-        print(f"🌍 Countries: {len(df['Country of Origin'].unique())}")
-        print(f"🏢 Buyers: {len(df['Buyer'].unique())}")
-        print(f"🚢 Sellers: {len(df['Seller'].unique())}")
-    else:
-        print("⚠️  No data loaded - check PRY_Dash.xlsx file")
-
-    app.run_server(debug=False, host='0.0.0.0', port=port)
+    if __name__ == '__main__':
+        app.run_server(debug=False, host='0.0.0.0', port=8050)
