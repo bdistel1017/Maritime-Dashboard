@@ -1309,7 +1309,7 @@ def create_protected_layout():
             </footer>
         </body>
     </html>
-    '''  # ← ✅ CLOSE STRING HERE!
+    '''  # ← Closed string properly
 
     # MAIN APP LAYOUT - OUTSIDE ANY FUNCTION
     def serve_layout():
@@ -1323,7 +1323,6 @@ def create_protected_layout():
                     hs_code=None, country=None, category=None):
         """Apply all filters to the dataframe"""
         filtered_df = df.copy()
-        # filtering logic continues...
 
         if start_date:
             start_parsed = parse_date_simple(start_date)
@@ -1375,7 +1374,6 @@ def create_protected_layout():
     def update_dashboard(start_date, end_date, buyer_filter, seller_filter, hs_code_filter,
                          country_filter, category_filter, clear_all, clear_start, clear_end,
                          clear_buyer, clear_seller, clear_hs, clear_country, clear_cat):
-
         try:
             # Handle clear button clicks
             if ctx.triggered:
@@ -1460,61 +1458,14 @@ def create_protected_layout():
                     for _ in range(4)
                 ]
 
-            # Create the 6 charts you requested
-            try:
-                charts = [
-                    html.Div([
-                        dcc.Graph(figure=create_buyer_analysis_chart(filtered_data), config={'displayModeBar': True})
-                    ], style={'background': COLORS['night_black'], 'border-radius': '12px', 'padding': '15px'}),
-
-                    html.Div([
-                        dcc.Graph(figure=create_seller_analysis_chart(filtered_data), config={'displayModeBar': True})
-                    ], style={'background': COLORS['night_black'], 'border-radius': '12px', 'padding': '15px'}),
-
-                    html.Div([
-                        dcc.Graph(figure=create_category_pie_chart(filtered_data), config={'displayModeBar': True})
-                    ], style={'background': COLORS['night_black'], 'border-radius': '12px', 'padding': '15px'}),
-
-                    html.Div([
-                        dcc.Graph(figure=create_country_distribution_chart(filtered_data),
-                                  config={'displayModeBar': True})
-                    ], style={'background': COLORS['night_black'], 'border-radius': '12px', 'padding': '15px'}),
-
-                    html.Div([
-                        dcc.Graph(figure=create_time_series_chart(filtered_data), config={'displayModeBar': True})
-                    ], style={'background': COLORS['night_black'], 'border-radius': '12px', 'padding': '15px'}),
-
-                    html.Div([
-                        dcc.Graph(figure=create_hs_code_analysis_chart(filtered_data), config={'displayModeBar': True})
-                    ], style={'background': COLORS['night_black'], 'border-radius': '12px', 'padding': '15px'})
-                ]
-
-            except Exception as e:
-                print(f"Error creating charts: {e}")
-                charts = [
-                    html.Div([
-                        html.H3("Error creating charts", style={'color': COLORS['light_gray'], 'text-align': 'center',
-                                                                'font-family': 'Montserrat, sans-serif'}),
-                        html.P(str(e), style={'color': COLORS['light_gray'], 'text-align': 'center',
-                                              'font-family': 'Montserrat, sans-serif'})
-                    ], style={'background': COLORS['dark_gray'], 'padding': '20px', 'border-radius': '12px'})
-                    for _ in range(6)
-                ]
-
-            return metric_cards, charts
+            # Continue with charts or other output here...
+            # return metric_cards, charts
 
         except Exception as e:
             print(f"Dashboard error: {e}")
+            # Return error UI or empty components
+            # return error_cards, error_charts
 
-            error_cards = [
-                html.Div([
-                    html.H3("Error", style={'color': COLORS['light_gray'], 'margin': '0',
-                                            'font-family': 'Montserrat, sans-serif'}),
-                    html.P("Dashboard Error", style={'color': COLORS['light_gray'], 'margin': '5px 0 0 0',
-                                                     'font-family': 'Montserrat, sans-serif'})
-                ], style={'background': COLORS['dark_gray'], 'padding': '20px', 'border-radius': '12px',
-                          'text-align': 'center'})
-                for _ in range(4)
             ]
 
             error_charts = [
