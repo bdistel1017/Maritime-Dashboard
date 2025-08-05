@@ -1008,7 +1008,8 @@ def create_protected_layout():
         # else:
         #     return create_login_layout()
 
-    app.layout = serve_layout
+    # Force layout directly
+    app.layout = create_protected_layout()
 
     # AUTHENTICATION CALLBACKS
     @app.callback(
