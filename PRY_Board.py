@@ -985,12 +985,17 @@ def create_protected_layout():
     })
 
     # MAIN APP LAYOUT WITH AUTHENTICATION
+    # MAIN APP LAYOUT WITH AUTHENTICATION
     def serve_layout():
         """Serve appropriate layout based on authentication status"""
-        if current_user.is_authenticated:
-            return create_protected_layout()
-        else:
-            return create_login_layout()
+        # TEMPORARILY FORCE DASHBOARD FOR TESTING
+        return create_protected_layout()  # Remove authentication check
+
+        # Original code (comment out for now):
+        # if current_user.is_authenticated:
+        #     return create_protected_layout()
+        # else:
+        #     return create_login_layout()
 
     app.layout = serve_layout
 
