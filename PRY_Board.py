@@ -1310,7 +1310,6 @@ def create_protected_layout():
         </body>
     </html>
     '''
-
     # MAIN APP LAYOUT - OUTSIDE ANY FUNCTION
     def serve_layout():
         """Serve appropriate layout based on authentication status"""
