@@ -26,15 +26,12 @@ server.secret_key = os.environ.get('SECRET_KEY', 'pry-maritime-dashboard-secret-
 
 # Initialize Dash app with Flask server
 # Initialize Dash app with Flask server - FORCE COMPONENT REGISTRATION
+# Initialize Dash app with Flask server - FIXED VERSION
 app = dash.Dash(
     __name__,
     server=server,
     suppress_callback_exceptions=True,
-    external_stylesheets=[],
-    external_scripts=[],
-    assets_folder=None,
-    serve_locally=True,
-    compress=False
+    serve_locally=True
 )
 
 # Force component registration
