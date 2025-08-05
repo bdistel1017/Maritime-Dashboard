@@ -112,6 +112,22 @@ login_layout = dbc.Container([
 ], fluid=True, style={"backgroundColor": COLOR_BG, "height": "100vh"})
 app.layout = login_layout
 
+from dash import Input, Output, State
+
+@app.callback(
+    Output("login-message", "children"),
+    Input("login-btn", "n_clicks"),
+    State("username", "value"),
+    State("password", "value"),
+    prevent_initial_call=True
+)
+def login(n_clicks, username, password):
+    if username == "admin" and password == "password":  # You can customize this
+        return "✅ Login successful! (But no redirect yet)"
+    else:
+        return "❌ Invalid username or password"
+
+
 
 # === MAIN DASHBOARD LAYOUT ===
 def dashboard_layout():
