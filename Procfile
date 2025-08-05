@@ -1,1 +1,1 @@
-web: gunicorn test_dash:server
+web: gunicorn PRY_Board:server
