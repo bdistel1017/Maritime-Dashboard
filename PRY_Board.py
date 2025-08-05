@@ -1008,7 +1008,7 @@ def create_protected_layout():
         # else:
         #     return create_login_layout()
 
-    # Force layout directly
+    # Force layout directly - MOVE THIS OUTSIDE THE FUNCTION
     app.layout = html.Div([
         html.H1("Maritime Imports Dashboard", style={'color': '#DCE4F2', 'text-align': 'center'}),
         html.P("Dashboard is loading...", style={'color': '#DCE4F2', 'text-align': 'center'})
