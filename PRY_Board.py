@@ -569,7 +569,7 @@ def create_waterfall_chart(data):
 
 
 # PROTECTED MAIN LAYOUT
-}def create_protected_layout():
+def create_protected_layout():
     """Main dashboard layout - only accessible after login"""
 
     # Create filter options with proper data handling
