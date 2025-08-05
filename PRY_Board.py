@@ -1009,7 +1009,10 @@ def create_protected_layout():
         #     return create_login_layout()
 
     # Force layout directly
-    app.layout = create_protected_layout()
+    app.layout = html.Div([
+        html.H1("Maritime Imports Dashboard", style={'color': '#DCE4F2', 'text-align': 'center'}),
+        html.P("Dashboard is loading...", style={'color': '#DCE4F2', 'text-align': 'center'})
+    ], style={'background-color': '#191B27', 'padding': '50px'})
 
     # AUTHENTICATION CALLBACKS
     @app.callback(
