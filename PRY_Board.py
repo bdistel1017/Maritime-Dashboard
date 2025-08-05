@@ -599,6 +599,7 @@ def create_protected_layout():
         buyer_options = seller_options = hs_code_options = country_options = category_options = []
 
     return html.Div([
+        # REMOVE the html.Style section completely - CSS is already in app.index_string
         # Enhanced CSS with clickable graphs
         html.Style(children='''
             * { 
