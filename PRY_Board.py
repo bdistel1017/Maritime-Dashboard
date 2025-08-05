@@ -110,6 +110,8 @@ login_layout = dbc.Container([
         html.Div(id="login-message", className="mt-2", style={"color": "red"})
     ], className="p-5", style={"maxWidth": "400px", "margin": "auto"})
 ], fluid=True, style={"backgroundColor": COLOR_BG, "height": "100vh"})
+app.layout = login_layout
+
 
 # === MAIN DASHBOARD LAYOUT ===
 def dashboard_layout():
