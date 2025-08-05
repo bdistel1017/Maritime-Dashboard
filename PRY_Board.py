@@ -569,7 +569,7 @@ def create_waterfall_chart(data):
 
 
 # PROTECTED MAIN LAYOUT
-def create_protected_layout():
+}def create_protected_layout():
     """Main dashboard layout - only accessible after login"""
 
     # Create filter options with proper data handling
@@ -599,333 +599,123 @@ def create_protected_layout():
         buyer_options = seller_options = hs_code_options = country_options = category_options = []
 
     return html.Div([
-        # REMOVE the html.Style section completely - CSS is already in app.index_string
         # Enhanced CSS with clickable graphs
         html.Style(children='''
             * { 
                 font-family: 'Montserrat', -apple-system, BlinkMacSystemFont, sans-serif !important;
                 box-sizing: border-box;
             }
-            body { 
-                background-color: #191B27 !important; 
-                color: #DCE4F2 !important; 
-                margin: 0; 
-                padding: 0; 
-            }
-            .main-header {
-                background: #191B27 !important;
-                padding: 25px 30px;
-                display: flex;
-                align-items: center;
-                justify-content: space-between;
-                border-bottom: 3px solid #2D354A;
-                box-shadow: 0 4px 20px rgba(0,0,0,0.4);
-            }
-            .header-left { display: flex; align-items: center; }
-            .logo { height: 70px; width: auto; margin-right: 25px; }
-            .title { color: #DCE4F2 !important; font-size: 42px !important; font-weight: 700 !important; margin: 0; }
-            .clear-all-btn {
-                background: linear-gradient(135deg, #22C70C 0%, #1E8E00 100%) !important; 
-                color: #191B27 !important; 
-                border: none; 
-                padding: 15px 30px;
-                border-radius: 12px; 
-                font-weight: 700 !important; 
-                cursor: pointer; 
-                font-size: 16px !important;
-                transition: all 0.3s ease;
-            }
-            .clear-all-btn:hover {
-                transform: translateY(-2px);
-                box-shadow: 0 6px 20px rgba(34,199,12,0.4);
-            }
-            .filters-container { background: #191B27 !important; padding: 25px 30px; border-bottom: 2px solid #2D354A; }
-            .filters-row { display: grid; grid-template-columns: repeat(7, 1fr); gap: 20px; align-items: start; }
-            .filter-item { display: flex; flex-direction: column; }
-            .filter-item label { color: #DCE4F2 !important; font-weight: 600 !important; margin-bottom: 10px; font-size: 16px !important; }
-            .clear-btn {
-                background: linear-gradient(135deg, #22C70C 0%, #1E8E00 100%) !important; 
-                color: #191B27 !important; 
-                border: none; 
-                padding: 8px 16px;
-                border-radius: 6px; 
-                font-weight: 600 !important; 
-                cursor: pointer; 
-                font-size: 12px !important; 
-                margin-top: 8px;
-                transition: all 0.2s ease;
-            }
-            .clear-btn:hover {
-                transform: translateY(-1px);
-            }
-            .charts-container { 
-                display: grid !important; 
-                grid-template-columns: repeat(3, 1fr) !important; 
-                gap: 25px !important; 
-                padding: 25px !important; 
-                background: #191B27 !important; 
-            }
-            .chart-item {
-                background: linear-gradient(135deg, #2D354A 0%, #1F2332 100%) !important; 
-                border-radius: 20px; 
-                padding: 20px;
-                box-shadow: 0 8px 32px rgba(0,0,0,0.3);
-                border: 1px solid rgba(0,147,255,0.2);
-                transition: all 0.3s ease;
-                cursor: pointer;
-                position: relative;
-            }
-            .chart-item:hover {
-                transform: translateY(-5px);
-                box-shadow: 0 12px 40px rgba(0,0,0,0.4);
-                border-color: #0093FF;
-            }
-            .chart-item::after {
-                content: "🔍 Click to enlarge";
-                position: absolute;
-                top: 10px;
-                right: 15px;
-                background: rgba(0,147,255,0.2);
-                color: #0093FF;
-                padding: 5px 10px;
-                border-radius: 15px;
-                font-size: 11px;
-                opacity: 0;
-                transition: all 0.3s ease;
-            }
-            .chart-item:hover::after {
-                opacity: 1;
-            }
-            .metric-cards { display: grid; grid-template-columns: repeat(4, 1fr); gap: 25px; margin: 30px; }
-            .metric-card {
-                background: linear-gradient(135deg, #2D354A 0%, #1F2332 100%) !important;
-                border-radius: 18px; 
-                padding: 25px; 
-                text-align: center;
-                border: 2px solid #0093FF; 
-                color: #DCE4F2 !important;
-                box-shadow: 0 6px 25px rgba(0,0,0,0.3);
-                transition: all 0.3s ease;
-            }
-            .metric-card:hover {
-                transform: translateY(-3px);
-                box-shadow: 0 10px 35px rgba(0,0,0,0.4);
-                border-color: #22C70C;
-            }
-            .metric-value { font-size: 36px !important; font-weight: 800 !important; margin: 0 0 8px 0; }
-            .metric-label { font-size: 16px !important; margin: 0; opacity: 0.9; font-weight: 500 !important; }
-            .user-info {
-                color: #DCE4F2;
-                font-size: 14px;
-                margin-right: 20px;
-            }
-            .logout-btn {
-                background: linear-gradient(135deg, #FF6B6B 0%, #FF5252 100%) !important;
-                color: white !important;
-                border: none;
-                padding: 10px 20px;
-                border-radius: 8px;
-                font-weight: 600 !important;
-                cursor: pointer;
-                font-size: 14px !important;
-                text-decoration: none;
-                margin-left: 10px;
-                transition: all 0.3s ease;
-            }
-            .logout-btn:hover {
-                transform: translateY(-1px);
-                box-shadow: 0 4px 15px rgba(255,107,107,0.3);
-            }
-
-            /* Enhanced Dropdown Styling */
-            .Select-control {
-                background-color: #2D354A !important;
-                border: 2px solid #2D354A !important;
-                color: #DCE4F2 !important;
-                min-height: 40px !important;
-                border-radius: 8px !important;
-            }
-            .Select-control:hover {
-                border-color: #0093FF !important;
-            }
-            .Select-control--is-focused {
-                border-color: #0093FF !important;
-                box-shadow: 0 0 0 1px #0093FF !important;
-            }
-            .Select-placeholder {
-                color: #DCE4F2 !important;
-                opacity: 0.7;
-            }
-            .Select-single-value {
-                color: #DCE4F2 !important;
-            }
-            .Select-menu {
-                background-color: #2D354A !important;
-                border: 1px solid #0093FF !important;
-                border-radius: 8px !important;
-                box-shadow: 0 4px 20px rgba(0,0,0,0.3) !important;
-            }
-            .Select-option {
-                background-color: transparent !important;
-                color: #DCE4F2 !important;
-                padding: 12px 15px !important;
-            }
-            .Select-option:hover {
-                background-color: #0093FF !important;
-                color: white !important;
-            }
-            .Select-option--is-focused {
-                background-color: #0093FF !important;
-                color: white !important;
-            }
-            .Select-option--is-selected {
-                background-color: #22C70C !important;
-                color: white !important;
-            }
-
-            /* Input Styling */
-            input[type="text"] {
-                background-color: #2D354A !important;
-                border: 2px solid #2D354A !important;
-                color: #DCE4F2 !important;
-                padding: 12px 15px !important;
-                border-radius: 8px !important;
-                font-size: 14px !important;
-                transition: all 0.3s ease !important;
-            }
-            input[type="text"]:focus {
-                outline: none !important;
-                border-color: #0093FF !important;
-                box-shadow: 0 0 0 1px #0093FF !important;
-            }
-            input[type="text"]::placeholder {
-                color: #DCE4F2 !important;
-                opacity: 0.7 !important;
-            }
+            # ... (lots more CSS) ...
         '''),
+        ```
 
+          ** REPLACE THE ENTIRE `html.Style(children='''` section with just:**
+    ```python
+    return html.Div([
         # Header with user info
-        html.Div([
+    ```
+
+    ## **OR EASIER - REPLACE THE WHOLE FUNCTION:**
+
+    **Replace your entire `create_protected_layout` function with this:**
+
+    ```python
+    def create_protected_layout():
+        """Main dashboard layout - only accessible after login"""
+
+        # Create filter options with proper data handling
+        try:
+            buyer_options = [{'label': buyer, 'value': buyer} for buyer in sorted(df['Buyer'].dropna().unique()) if buyer != 'Unknown' and str(buyer) != 'nan']
+            seller_options = [{'label': seller, 'value': seller} for seller in sorted(df['Seller'].dropna().unique()) if str(seller) != 'nan']
+
+            hs_codes = [str(hs) for hs in df['HS Code'].dropna().unique() if str(hs) != 'nan']
+            hs_code_options = [{'label': hs, 'value': hs} for hs in sorted(hs_codes)]
+
+            country_options = [{'label': country, 'value': country} for country in sorted(df['Country of Origin'].dropna().unique()) if str(country) != 'nan']
+
+            # Enhanced category options with descriptions
+            available_categories = [cat for cat in sorted(df['Category'].dropna().unique()) if str(cat) != 'nan']
+            category_options = []
+            for cat in available_categories:
+                description = CODE_TO_DESCRIPTION.get(cat, cat)
+                category_options.append({'label': description, 'value': cat})
+
+            category_options = sorted(category_options, key=lambda x: x['label'])
+
+        except Exception as e:
+            print(f"Error creating filter options: {e}")
+            buyer_options = seller_options = hs_code_options = country_options = category_options = []
+
+        return html.Div([
+            # Header with user info
             html.Div([
-                html.Img(src=LOGO_DATA, className="logo") if LOGO_DATA else html.Div(),
-                html.H1("PRY Maritime Trade Analytics", className="title")
-            ], className="header-left"),
+                html.Div([
+                    html.Img(src=LOGO_DATA, style={'height': '70px', 'width': 'auto', 'margin-right': '25px'}) if LOGO_DATA else html.Div(),
+                    html.H1("PRY Maritime Trade Analytics", style={'color': COLORS['light_gray'], 'font-size': '42px', 'font-weight': '700', 'margin': '0'})
+                ], style={'display': 'flex', 'align-items': 'center'}),
+                html.Div([
+                    html.Span(f"Welcome, {current_user.username if current_user.is_authenticated else 'User'}", style={'color': COLORS['light_gray'], 'font-size': '14px', 'margin-right': '20px'}),
+                    html.A("Logout", href="/logout", style={'background': 'linear-gradient(135deg, #FF6B6B 0%, #FF5252 100%)', 'color': 'white', 'border': 'none', 'padding': '10px 20px', 'border-radius': '8px', 'font-weight': '600', 'cursor': 'pointer', 'font-size': '14px', 'text-decoration': 'none', 'margin-left': '10px'}),
+                    html.Button("Clear All Filters", id="clear-all-btn", style={'background': 'linear-gradient(135deg, #22C70C 0%, #1E8E00 100%)', 'color': COLORS['night_black'], 'border': 'none', 'padding': '15px 30px', 'border-radius': '12px', 'font-weight': '700', 'cursor': 'pointer', 'font-size': '16px'})
+                ], style={'display': 'flex', 'align-items': 'center'})
+            ], style={'background': COLORS['night_black'], 'padding': '25px 30px', 'display': 'flex', 'align-items': 'center', 'justify-content': 'space-between', 'border-bottom': f'3px solid {COLORS["dark_gray"]}'}),
+
+            # Filters Section
             html.Div([
-                html.Span(f"Welcome, {current_user.username if current_user.is_authenticated else 'User'}",
-                          className="user-info"),
-                html.A("Logout", href="/logout", className="logout-btn"),
-                html.Button("Clear All Filters", id="clear-all-btn", className="clear-all-btn")
-            ], style={'display': 'flex', 'align-items': 'center'})
-        ], className="main-header"),
-
-        # Enhanced Filters Section
-        html.Div([
-            html.Div([
                 html.Div([
-                    html.Label("Start Date"),
-                    dcc.Input(
-                        id="start-date",
-                        type="text",
-                        placeholder="MM/DD/YYYY",
-                        value="",
-                        style={'width': '100%'}
-                    ),
-                    html.Button("Clear", id="clear-start-date", className="clear-btn")
-                ], className="filter-item"),
+                    html.Div([
+                        html.Label("Start Date", style={'color': COLORS['light_gray'], 'font-weight': '600', 'margin-bottom': '10px', 'font-size': '16px'}),
+                        dcc.Input(id="start-date", type="text", placeholder="MM/DD/YYYY", value="", style={'width': '100%', 'background-color': COLORS['dark_gray'], 'border': f'2px solid {COLORS["dark_gray"]}', 'color': COLORS['light_gray'], 'padding': '12px 15px', 'border-radius': '8px', 'font-size': '14px'}),
+                        html.Button("Clear", id="clear-start-date", style={'background': 'linear-gradient(135deg, #22C70C 0%, #1E8E00 100%)', 'color': COLORS['night_black'], 'border': 'none', 'padding': '8px 16px', 'border-radius': '6px', 'font-weight': '600', 'cursor': 'pointer', 'font-size': '12px', 'margin-top': '8px'})
+                    ], style={'display': 'flex', 'flex-direction': 'column'}),
 
-                html.Div([
-                    html.Label("End Date"),
-                    dcc.Input(
-                        id="end-date",
-                        type="text",
-                        placeholder="MM/DD/YYYY",
-                        value="",
-                        style={'width': '100%'}
-                    ),
-                    html.Button("Clear", id="clear-end-date", className="clear-btn")
-                ], className="filter-item"),
+                    html.Div([
+                        html.Label("End Date", style={'color': COLORS['light_gray'], 'font-weight': '600', 'margin-bottom': '10px', 'font-size': '16px'}),
+                        dcc.Input(id="end-date", type="text", placeholder="MM/DD/YYYY", value="", style={'width': '100%', 'background-color': COLORS['dark_gray'], 'border': f'2px solid {COLORS["dark_gray"]}', 'color': COLORS['light_gray'], 'padding': '12px 15px', 'border-radius': '8px', 'font-size': '14px'}),
+                        html.Button("Clear", id="clear-end-date", style={'background': 'linear-gradient(135deg, #22C70C 0%, #1E8E00 100%)', 'color': COLORS['night_black'], 'border': 'none', 'padding': '8px 16px', 'border-radius': '6px', 'font-weight': '600', 'cursor': 'pointer', 'font-size': '12px', 'margin-top': '8px'})
+                    ], style={'display': 'flex', 'flex-direction': 'column'}),
 
-                html.Div([
-                    html.Label("Category"),
-                    dcc.Dropdown(
-                        id="category-filter",
-                        options=category_options,
-                        value=None,
-                        placeholder="Search categories...",
-                        searchable=True,
-                        clearable=True,
-                        className="enhanced-dropdown"
-                    ),
-                    html.Button("Clear", id="clear-category", className="clear-btn")
-                ], className="filter-item"),
+                    html.Div([
+                        html.Label("Category", style={'color': COLORS['light_gray'], 'font-weight': '600', 'margin-bottom': '10px', 'font-size': '16px'}),
+                        dcc.Dropdown(id="category-filter", options=category_options, value=None, placeholder="Search categories...", searchable=True, clearable=True),
+                        html.Button("Clear", id="clear-category", style={'background': 'linear-gradient(135deg, #22C70C 0%, #1E8E00 100%)', 'color': COLORS['night_black'], 'border': 'none', 'padding': '8px 16px', 'border-radius': '6px', 'font-weight': '600', 'cursor': 'pointer', 'font-size': '12px', 'margin-top': '8px'})
+                    ], style={'display': 'flex', 'flex-direction': 'column'}),
 
-                html.Div([
-                    html.Label("Buyer"),
-                    dcc.Dropdown(
-                        id="buyer-filter",
-                        options=buyer_options,
-                        value=None,
-                        placeholder="Search buyers...",
-                        searchable=True,
-                        clearable=True,
-                        className="enhanced-dropdown"
-                    ),
-                    html.Button("Clear", id="clear-buyer", className="clear-btn")
-                ], className="filter-item"),
+                    html.Div([
+                        html.Label("Buyer", style={'color': COLORS['light_gray'], 'font-weight': '600', 'margin-bottom': '10px', 'font-size': '16px'}),
+                        dcc.Dropdown(id="buyer-filter", options=buyer_options, value=None, placeholder="Search buyers...", searchable=True, clearable=True),
+                        html.Button("Clear", id="clear-buyer", style={'background': 'linear-gradient(135deg, #22C70C 0%, #1E8E00 100%)', 'color': COLORS['night_black'], 'border': 'none', 'padding': '8px 16px', 'border-radius': '6px', 'font-weight': '600', 'cursor': 'pointer', 'font-size': '12px', 'margin-top': '8px'})
+                    ], style={'display': 'flex', 'flex-direction': 'column'}),
 
-                html.Div([
-                    html.Label("Seller"),
-                    dcc.Dropdown(
-                        id="seller-filter",
-                        options=seller_options,
-                        value=None,
-                        placeholder="Search sellers...",
-                        searchable=True,
-                        clearable=True,
-                        className="enhanced-dropdown"
-                    ),
-                    html.Button("Clear", id="clear-seller", className="clear-btn")
-                ], className="filter-item"),
+                    html.Div([
+                        html.Label("Seller", style={'color': COLORS['light_gray'], 'font-weight': '600', 'margin-bottom': '10px', 'font-size': '16px'}),
+                        dcc.Dropdown(id="seller-filter", options=seller_options, value=None, placeholder="Search sellers...", searchable=True, clearable=True),
+                        html.Button("Clear", id="clear-seller", style={'background': 'linear-gradient(135deg, #22C70C 0%, #1E8E00 100%)', 'color': COLORS['night_black'], 'border': 'none', 'padding': '8px 16px', 'border-radius': '6px', 'font-weight': '600', 'cursor': 'pointer', 'font-size': '12px', 'margin-top': '8px'})
+                    ], style={'display': 'flex', 'flex-direction': 'column'}),
 
-                html.Div([
-                    html.Label("HS Code"),
-                    dcc.Dropdown(
-                        id="hs-code-filter",
-                        options=hs_code_options,
-                        value=None,
-                        placeholder="Search HS codes...",
-                        searchable=True,
-                        clearable=True,
-                        className="enhanced-dropdown"
-                    ),
-                    html.Button("Clear", id="clear-hs-code", className="clear-btn")
-                ], className="filter-item"),
+                    html.Div([
+                        html.Label("HS Code", style={'color': COLORS['light_gray'], 'font-weight': '600', 'margin-bottom': '10px', 'font-size': '16px'}),
+                        dcc.Dropdown(id="hs-code-filter", options=hs_code_options, value=None, placeholder="Search HS codes...", searchable=True, clearable=True),
+                        html.Button("Clear", id="clear-hs-code", style={'background': 'linear-gradient(135deg, #22C70C 0%, #1E8E00 100%)', 'color': COLORS['night_black'], 'border': 'none', 'padding': '8px 16px', 'border-radius': '6px', 'font-weight': '600', 'cursor': 'pointer', 'font-size': '12px', 'margin-top': '8px'})
+                    ], style={'display': 'flex', 'flex-direction': 'column'}),
 
-                html.Div([
-                    html.Label("Country of Origin"),
-                    dcc.Dropdown(
-                        id="country-filter",
-                        options=country_options,
-                        value=None,
-                        placeholder="Search countries...",
-                        searchable=True,
-                        clearable=True,
-                        className="enhanced-dropdown"
-                    ),
-                    html.Button("Clear", id="clear-country", className="clear-btn")
-                ], className="filter-item"),
-            ], className="filters-row")
-        ], className="filters-container"),
+                    html.Div([
+                        html.Label("Country of Origin", style={'color': COLORS['light_gray'], 'font-weight': '600', 'margin-bottom': '10px', 'font-size': '16px'}),
+                        dcc.Dropdown(id="country-filter", options=country_options, value=None, placeholder="Search countries...", searchable=True, clearable=True),
+                        html.Button("Clear", id="clear-country", style={'background': 'linear-gradient(135deg, #22C70C 0%, #1E8E00 100%)', 'color': COLORS['night_black'], 'border': 'none', 'padding': '8px 16px', 'border-radius': '6px', 'font-weight': '600', 'cursor': 'pointer', 'font-size': '12px', 'margin-top': '8px'})
+                    ], style={'display': 'flex', 'flex-direction': 'column'}),
+                ], style={'display': 'grid', 'grid-template-columns': 'repeat(7, 1fr)', 'gap': '20px', 'align-items': 'start'})
+            ], style={'background': COLORS['night_black'], 'padding': '25px 30px', 'border-bottom': f'2px solid {COLORS["dark_gray"]}'}),
 
-        # Key Metrics Cards
-        html.Div(id="metric-cards", className="metric-cards"),
+            # Key Metrics Cards
+            html.Div(id="metric-cards", style={'display': 'grid', 'grid-template-columns': 'repeat(4, 1fr)', 'gap': '25px', 'margin': '30px'}),
 
-        # Charts Section with Click Handlers
-        html.Div(id="charts-container", className="charts-container"),
+            # Charts Section
+            html.Div(id="charts-container", style={'display': 'grid', 'grid-template-columns': 'repeat(3, 1fr)', 'gap': '25px', 'padding': '25px', 'background': COLORS['night_black']}),
 
-        # Hidden div to store filtered data
-        html.Div(id="filtered-data-store", style={'display': 'none'})
-    ])
+            # Hidden div to store filtered data
+            html.Div(id="filtered-data-store", style={'display': 'none'})
+        ], style={'background-color': COLORS['night_black'], 'color': COLORS['light_gray'], 'font-family': 'Montserrat, sans-serif'})
 
 
 # MAIN APP LAYOUT WITH AUTHENTICATION
